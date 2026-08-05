@@ -137,7 +137,12 @@
           </div>
           <div class="campo solo-lectura">
             <label>T.C. (dólar venta)</label>
-            <input id="fDolarVenta" type="number" step="0.01">
+            <div style="display:flex; gap:.4rem; align-items:center;">
+              <input id="fDolarVenta" type="number" step="0.01" style="flex:1;">
+              <button type="button" id="btnActualizarDolar" title="Actualizar desde DolarAPI (oficial)"
+                style="padding:.4rem .6rem; border:1px solid var(--borde); border-radius:6px; background:#fff; cursor:pointer;">⟳</button>
+            </div>
+            <div id="dolarEstado" style="font-size:.68rem; color:#888; margin-top:.25rem;"></div>
           </div>
           <div class="campo">
             <label>Base para plan de pago 50/50</label>

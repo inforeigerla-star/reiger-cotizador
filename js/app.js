@@ -89,6 +89,30 @@
   }
 
   // ==========================================================
+  // T.C. (dólar oficial) automático, vía DolarAPI (gratis, sin key).
+  // Se trae solo al abrir la app y con el botón ⟳; si falla (sin
+  // conexión, etc.) se deja el valor que ya estuviera cargado.
+  // ==========================================================
+  async function actualizarDolarOficial() {
+    const estado = $("dolarEstado");
+    if (estado) estado.textContent = "Actualizando…";
+    try {
+      const resp = await fetch("https://dolarapi.com/v1/dolares/oficial");
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const data = await resp.json();
+      if (typeof data.venta !== "number") throw new Error("Respuesta inesperada");
+      $("fDolarVenta").value = data.venta;
+      recalcularTotales();
+      const hora = new Date(data.fechaActualizacion || Date.now())
+        .toLocaleString("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+      if (estado) estado.textContent = `Oficial (DolarAPI) — actualizado ${hora}`;
+    } catch (err) {
+      if (estado) estado.textContent = "No se pudo actualizar automáticamente. Podés cargarlo a mano.";
+      console.warn("No se pudo traer el dólar oficial:", err);
+    }
+  }
+
+  // ==========================================================
   // Inicialización de la app
   // ==========================================================
   function initApp() {
@@ -122,6 +146,10 @@
     if (cache && cache.data) {
       aplicarExcelData(cache.data, cache.nombreArchivo, cache.fecha);
     }
+
+    // Dólar oficial en vivo (pisa el valor del Excel si la consulta funciona)
+    actualizarDolarOficial();
+    $("btnActualizarDolar").addEventListener("click", actualizarDolarOficial);
 
     // Listeners
     $("inputExcel").addEventListener("change", onArchivoSeleccionado);
