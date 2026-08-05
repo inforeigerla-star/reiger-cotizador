@@ -40,6 +40,8 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,.25);
 }
 .caja-pin h1 { font-size: 1.2rem; margin: .5rem 0 1.2rem; color: var(--violeta); }
+.logo-pin { width: 110px; height: auto; margin-bottom: .3rem; }
+.logo-header { height: 42px; width: auto; background: #fff; border-radius: 8px; padding: 3px 6px; }
 .caja-pin input {
   width: 100%;
   padding: .6rem .7rem;
@@ -267,6 +269,10 @@ table.descuentos input {
   display: inline-block; padding: .1rem .5rem; border-radius: 20px;
   background: var(--lavanda); color: var(--violeta-oscuro); font-size: .72rem; font-weight: 600;
 }
+.historial-tabla button.eliminar {
+  background: none; border: none; color: #b3261e; cursor: pointer; font-size: 1rem; padding: 0 .3rem;
+}
+.historial-tabla button.eliminar:hover { color: #7a1a13; }
 
 .aviso {
   font-size: .78rem;

@@ -11,7 +11,8 @@
 <!-- ===================== PANTALLA DE PIN ===================== -->
 <div id="pantallaPin">
   <div class="caja-pin">
-    <h1>REIGER SUSPENSION<br>Cotizador</h1>
+    <img src="assets/logo.jpg" alt="Reiger Suspension" class="logo-pin">
+    <h1>Cotizador</h1>
     <div class="pin-error" id="pinError"></div>
     <input type="password" id="pinInput" placeholder="PIN de acceso" autocomplete="off">
     <button id="pinBoton">Entrar</button>
@@ -23,7 +24,10 @@
 <div id="app" class="oculto">
 
   <header class="app-header">
-    <h1>REIGER SUSPENSION — Cotizador</h1>
+    <div style="display:flex; align-items:center; gap:.8rem;">
+      <img src="assets/logo.jpg" alt="Reiger Suspension" class="logo-header">
+      <h1>Cotizador</h1>
+    </div>
     <div class="contacto" id="contactoHeader"></div>
   </header>
 
@@ -37,7 +41,7 @@
           Todavía no cargaste tu archivo <strong>BASE_DE_DATOS_3.xlsm</strong>.
           <input type="file" id="inputExcel" accept=".xlsx,.xlsm,.xls">
         </div>
-        <div class="aviso">El archivo se procesa acá mismo, en tu navegador. No se sube a ningún servidor. Cuando actualices precios en el Excel, volvé a seleccionarlo acá.</div>
+        <div class="aviso">El archivo se procesa acá mismo, en tu navegador. No se sube a ningún servidor. Queda guardado en este navegador para la próxima vez que entres — solo tenés que volver a seleccionarlo cuando lo hayas actualizado con precios nuevos.</div>
       </section>
 
       <section class="panel">
@@ -177,13 +181,14 @@
       <button class="btn btn-secundario" id="btnExportarHistorial">Exportar a Excel (.xlsx)</button>
       <button class="btn btn-secundario" id="btnImportarHistorialBtn">Importar historial</button>
       <input type="file" id="inputImportarHistorial" accept=".xlsx,.json" class="oculto">
+      <button class="btn btn-secundario" id="btnVaciarHistorial" style="margin-left:auto; color:#b3261e; border-color:#b3261e;">Vaciar historial</button>
     </div>
     <div class="historial-wrap">
       <table class="historial-tabla">
         <thead>
           <tr>
             <th>N°</th><th>Fecha</th><th>Cliente</th><th>País</th><th>Modalidad</th>
-            <th>Set</th><th>Total</th><th>Moneda</th><th>WhatsApp</th><th>Estado</th>
+            <th>Set</th><th>Total</th><th>Moneda</th><th>WhatsApp</th><th>Estado</th><th></th>
           </tr>
         </thead>
         <tbody id="tbodyHistorial"></tbody>
@@ -200,6 +205,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script src="config.js"></script>
+<script src="js/logo.js"></script>
 <script src="js/xlsxdata.js"></script>
 <script src="js/calc.js"></script>
 <script src="js/historial.js"></script>

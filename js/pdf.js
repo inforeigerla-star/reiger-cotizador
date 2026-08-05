@@ -23,20 +23,30 @@ const ReigerPdf = (function () {
     let y = 0;
 
     // -------- Encabezado --------
-    doc.setFillColor(...VIOLETA);
-    doc.rect(0, 0, anchoPag, 28, "F");
-    doc.setTextColor(255, 255, 255);
+    // Logo arriba a la izquierda, sobre fondo blanco (el logo ya trae
+    // su propio fondo blanco, así que no se pisa contra ningún color).
+    const logoAncho = 30, logoAlto = logoAncho * (507 / 630);
+    if (window.REIGER_LOGO_BASE64) {
+      try {
+        doc.addImage(window.REIGER_LOGO_BASE64, "JPEG", margen, 6, logoAncho, logoAlto);
+      } catch (e) { /* si falla la imagen, seguimos sin logo */ }
+    }
+
+    doc.setTextColor(...VIOLETA);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("REIGER SUSPENSION", margen, 13);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(datos.contacto.email + "   |   " + datos.contacto.telefono, margen, 20);
-    doc.setFontSize(15);
-    doc.setFont("helvetica", "bold");
+    doc.setFontSize(19);
     doc.text("COTIZACIÓN", anchoPag - margen, 16, { align: "right" });
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "normal");
     doc.setTextColor(...GRIS_TEXTO);
-    y = 35;
+    doc.text(datos.contacto.email, anchoPag - margen, 23, { align: "right" });
+    doc.text(datos.contacto.telefono, anchoPag - margen, 28, { align: "right" });
+
+    y = Math.max(6 + logoAlto, 32) + 4;
+    doc.setDrawColor(...VIOLETA);
+    doc.setLineWidth(0.6);
+    doc.line(margen, y, anchoPag - margen, y);
+    y += 6;
 
     // -------- Datos del cliente --------
     doc.setFillColor(...LAVANDA);

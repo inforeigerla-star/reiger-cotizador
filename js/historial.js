@@ -46,6 +46,18 @@ const ReigerHistorial = (function () {
     return registro;
   }
 
+  // Borra un registro puntual. El contador de numeración NO se toca,
+  // así un número borrado nunca se reutiliza para otra cotización.
+  function eliminarRegistro(numero) {
+    const lista = _leer().filter(r => r.numero !== numero);
+    _guardar(lista);
+  }
+
+  // Vacía todo el historial visible. Tampoco toca el contador.
+  function vaciarTodo() {
+    _guardar([]);
+  }
+
   function exportarXlsx() {
     const lista = obtenerTodos();
     const filas = lista.map(r => ({
@@ -108,5 +120,5 @@ const ReigerHistorial = (function () {
     });
   }
 
-  return { obtenerTodos, siguienteNumero, agregarRegistro, exportarXlsx, importarXlsx };
+  return { obtenerTodos, siguienteNumero, agregarRegistro, eliminarRegistro, vaciarTodo, exportarXlsx, importarXlsx };
 })();

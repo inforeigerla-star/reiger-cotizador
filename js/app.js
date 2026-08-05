@@ -32,6 +32,32 @@
     return $("fModalidad").value === "Sudamérica c/desc." ? CFG.maxItems.conDescuento : CFG.maxItems.normal;
   }
 
+  // ---------------- Cache del Excel cargado ----------------
+  // Guarda los datos YA PARSEADOS (no el archivo original) en este
+  // navegador, para no tener que volver a seleccionar el Excel cada
+  // vez que se abre la app. Se pisa solo cuando el usuario carga un
+  // archivo nuevo.
+  const EXCEL_CACHE_KEY = "reiger_excel_cache_v1";
+
+  function guardarExcelCache(data, nombreArchivo) {
+    try {
+      localStorage.setItem(EXCEL_CACHE_KEY, JSON.stringify({
+        data, nombreArchivo, fecha: new Date().toISOString()
+      }));
+    } catch (e) {
+      console.warn("No pude guardar el Excel en caché (puede ser muy grande para este navegador).", e);
+    }
+  }
+
+  function leerExcelCache() {
+    try {
+      const raw = localStorage.getItem(EXCEL_CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // ==========================================================
   // PIN
   // ==========================================================
@@ -91,6 +117,12 @@
     renderItems();
     recalcularTotales();
 
+    // Restaurar el Excel de la última vez, si hay uno guardado en este navegador
+    const cache = leerExcelCache();
+    if (cache && cache.data) {
+      aplicarExcelData(cache.data, cache.nombreArchivo, cache.fecha);
+    }
+
     // Listeners
     $("inputExcel").addEventListener("change", onArchivoSeleccionado);
     $("fSet").addEventListener("change", onSetSeleccionado);
@@ -118,6 +150,11 @@
     $("btnCerrarHistorial").addEventListener("click", () => $("modalHistorial").classList.add("oculto"));
     $("btnExportarHistorial").addEventListener("click", () => ReigerHistorial.exportarXlsx());
     $("btnImportarHistorialBtn").addEventListener("click", () => $("inputImportarHistorial").click());
+    $("btnVaciarHistorial").addEventListener("click", () => {
+      if (!confirm("¿Vaciar todo el historial de cotizaciones? Esta acción no se puede deshacer (los PDF ya descargados no se ven afectados).")) return;
+      ReigerHistorial.vaciarTodo();
+      renderHistorial();
+    });
     $("inputImportarHistorial").addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -144,41 +181,56 @@
     estado.innerHTML = "Leyendo archivo…";
 
     try {
-      excelData = await ReigerXlsx.cargarArchivo(file);
-
-      estado.className = "estado-archivo ok";
-      estado.innerHTML = `Cargado: <strong>${file.name}</strong> — ${excelData.setOrder.length} sets, ${excelData.codigosList.length} códigos.`;
-
-      const fSet = $("fSet");
-      fSet.innerHTML = '<option value="">— Elegí un set —</option>';
-      excelData.setOrder.forEach(nombre => {
-        const op = document.createElement("option");
-        op.value = nombre; op.textContent = nombre;
-        fSet.appendChild(op);
-      });
-
-      const datalist = $("datalistCodigos");
-      datalist.innerHTML = "";
-      excelData.codigosList.forEach(cod => {
-        const op = document.createElement("option");
-        op.value = cod; op.label = excelData.codigos[cod] || "";
-        datalist.appendChild(op);
-      });
-
-      if (excelData.dolarVenta) $("fDolarVenta").value = excelData.dolarVenta;
-      if (typeof excelData.ivaPct === "number") CFG.defaults.ivaPct = excelData.ivaPct;
-
-      recalcularTotales();
+      const data = await ReigerXlsx.cargarArchivo(file);
+      guardarExcelCache(data, file.name);
+      aplicarExcelData(data, file.name, new Date().toISOString());
     } catch (err) {
       estado.className = "estado-archivo error";
-      estado.innerHTML = "Error al leer el archivo: " + err.message;
+      estado.innerHTML = "Error al leer el archivo: " + err.message +
+        ` <input type="file" id="inputExcel" accept=".xlsx,.xlsm,.xls" title="Probar con otro archivo">`;
+      const nuevoInput = estado.querySelector("#inputExcel");
+      if (nuevoInput) nuevoInput.addEventListener("change", onArchivoSeleccionado);
       excelData = null;
     }
-    // Volvemos a poner el input de archivo visible para poder recargarlo
-    const inputViejo = $("inputExcel");
-    const clon = inputViejo.cloneNode(true);
-    inputViejo.parentNode.replaceChild(clon, inputViejo);
-    clon.addEventListener("change", onArchivoSeleccionado);
+  }
+
+  // Aplica datos ya parseados (recién cargados o restaurados de caché)
+  // a la interfaz: combo de sets, datalist de códigos, T.C. e IVA.
+  function aplicarExcelData(data, nombreArchivo, fechaIso) {
+    excelData = data;
+    const estado = $("estadoArchivo");
+    const fecha = fechaIso ? new Date(fechaIso).toLocaleString("es-AR") : "";
+    estado.className = "estado-archivo ok";
+    estado.innerHTML = `Cargado: <strong>${nombreArchivo || "archivo"}</strong>` +
+      (fecha ? ` (guardado el ${fecha})` : "") +
+      ` — ${data.setOrder.length} sets, ${data.codigosList.length} códigos.` +
+      ` <input type="file" id="inputExcel" accept=".xlsx,.xlsm,.xls" title="Cargar otro archivo">`;
+    // El input de arriba reemplaza al que había; hay que re-engancharlo.
+    const nuevoInput = estado.querySelector("#inputExcel");
+    if (nuevoInput) nuevoInput.addEventListener("change", onArchivoSeleccionado);
+
+    const fSet = $("fSet");
+    const setElegido = fSet.value;
+    fSet.innerHTML = '<option value="">— Elegí un set —</option>';
+    data.setOrder.forEach(nombre => {
+      const op = document.createElement("option");
+      op.value = nombre; op.textContent = nombre;
+      fSet.appendChild(op);
+    });
+    if (setElegido && data.setOrder.includes(setElegido)) fSet.value = setElegido;
+
+    const datalist = $("datalistCodigos");
+    datalist.innerHTML = "";
+    data.codigosList.forEach(cod => {
+      const op = document.createElement("option");
+      op.value = cod; op.label = data.codigos[cod] || "";
+      datalist.appendChild(op);
+    });
+
+    if (data.dolarVenta) $("fDolarVenta").value = data.dolarVenta;
+    if (typeof data.ivaPct === "number") CFG.defaults.ivaPct = data.ivaPct;
+
+    recalcularTotales();
   }
 
   function onSetSeleccionado() {
@@ -450,8 +502,18 @@
         <td>${r.moneda || ""}</td>
         <td>${r.whatsapp || ""}</td>
         <td>${r.estado || ""}</td>
+        <td><button type="button" class="eliminar" data-numero="${r.numero}" title="Eliminar esta cotización del historial">✕</button></td>
       </tr>
-    `).join("") || `<tr><td colspan="10" style="text-align:center; color:#999; padding:1.5rem;">Todavía no generaste ninguna cotización.</td></tr>`;
+    `).join("") || `<tr><td colspan="11" style="text-align:center; color:#999; padding:1.5rem;">Todavía no generaste ninguna cotización.</td></tr>`;
+
+    tbody.querySelectorAll("button.eliminar").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const numero = Number(btn.dataset.numero);
+        if (!confirm(`¿Eliminar la cotización N° ${numero} del historial? Esto no borra el PDF ya descargado, solo el registro.`)) return;
+        ReigerHistorial.eliminarRegistro(numero);
+        renderHistorial();
+      });
+    });
   }
 
   // ---------------- Arranque ----------------
