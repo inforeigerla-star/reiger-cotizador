@@ -199,13 +199,13 @@ const ReigerPdf = (function () {
     return doc;
   }
 
-  // Banner institucional real (imagen provista), más chico y centrado,
-  // ubicado justo después del resto del contenido. Si no entra en lo
-  // que queda de la página, pasa a una nueva en vez de quedar cortado.
+  // Banner institucional real (imagen provista), centrado, ubicado
+  // justo después del resto del contenido. Si no entra en lo que
+  // queda de la página, pasa a una nueva en vez de quedar cortado.
   function dibujarBannerPie(doc, anchoPag, margen, y) {
     if (!window.REIGER_BANNER_BASE64) return;
     const altoPag = 297;
-    const anchoBanda = (anchoPag - margen * 2) * 0.58;
+    const anchoBanda = (anchoPag - margen * 2) * 0.85;
     // Proporción real de la imagen (1282 x 247 px).
     const altoBanda = anchoBanda * (247 / 1282);
     const xBanda = (anchoPag - anchoBanda) / 2;
