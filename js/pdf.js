@@ -23,27 +23,25 @@ const ReigerPdf = (function () {
     let y = 0;
 
     // -------- Encabezado --------
-    // Logo grande, centrado arriba (estilo membrete), con el título y
-    // los datos de contacto debajo, también centrados.
-    const logoAncho = 46, logoAlto = logoAncho * (507 / 630);
+    // Logo grande arriba a la derecha; título y contacto a la izquierda.
+    const logoAncho = 40, logoAlto = logoAncho * (507 / 630);
     if (window.REIGER_LOGO_BASE64) {
       try {
-        doc.addImage(window.REIGER_LOGO_BASE64, "JPEG", (anchoPag - logoAncho) / 2, 7, logoAncho, logoAlto);
+        doc.addImage(window.REIGER_LOGO_BASE64, "JPEG", anchoPag - margen - logoAncho, 6, logoAncho, logoAlto);
       } catch (e) { /* si falla la imagen, seguimos sin logo */ }
     }
-    y = 7 + logoAlto + 4;
 
     doc.setTextColor(...VIOLETA);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(15);
-    doc.text("COTIZACIÓN", anchoPag / 2, y, { align: "center" });
-    y += 5.5;
-    doc.setFontSize(9);
+    doc.setFontSize(18);
+    doc.text("COTIZACIÓN", margen, 17);
+    doc.setFontSize(9.5);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(...GRIS_TEXTO);
-    doc.text(`${datos.contacto.email}   |   ${datos.contacto.telefono}`, anchoPag / 2, y, { align: "center" });
-    y += 5;
+    doc.text(datos.contacto.email, margen, 26);
+    doc.text(datos.contacto.telefono, margen, 32);
 
+    y = Math.max(6 + logoAlto, 34) + 4;
     doc.setDrawColor(...VIOLETA);
     doc.setLineWidth(0.6);
     doc.line(margen, y, anchoPag - margen, y);
@@ -191,23 +189,32 @@ const ReigerPdf = (function () {
     doc.text(`Swift Code: ${datos.banco.swift}`, margen, y); y += 4.2;
     doc.text(`Acct. N°: ${datos.banco.cuentaNumero}`, margen, y); y += 4.2;
     doc.text(`Acct. Name: ${datos.banco.cuentaTitular}`, margen, y);
+    y += 4;
 
     // -------- Banner de pie de página --------
-    dibujarBannerPie(doc, anchoPag, margen);
+    // Va a continuación de todo el contenido (no fijo al borde de la
+    // página), para no superponerse si la cotización ocupa más espacio.
+    dibujarBannerPie(doc, anchoPag, margen, y);
 
     return doc;
   }
 
-  // Banner institucional real (imagen provista), fijo al pie de la página.
-  function dibujarBannerPie(doc, anchoPag, margen) {
-    const altoPag = 297;
+  // Banner institucional real (imagen provista), más chico y centrado,
+  // ubicado justo después del resto del contenido. Si no entra en lo
+  // que queda de la página, pasa a una nueva en vez de quedar cortado.
+  function dibujarBannerPie(doc, anchoPag, margen, y) {
     if (!window.REIGER_BANNER_BASE64) return;
-    const anchoBanda = anchoPag - margen * 2;
+    const altoPag = 297;
+    const anchoBanda = (anchoPag - margen * 2) * 0.58;
     // Proporción real de la imagen (1282 x 247 px).
     const altoBanda = anchoBanda * (247 / 1282);
-    const yTop = altoPag - 12 - altoBanda;
+    const xBanda = (anchoPag - anchoBanda) / 2;
+    if (y + altoBanda > altoPag - 6) {
+      doc.addPage();
+      y = 20;
+    }
     try {
-      doc.addImage(window.REIGER_BANNER_BASE64, "JPEG", margen, yTop, anchoBanda, altoBanda);
+      doc.addImage(window.REIGER_BANNER_BASE64, "JPEG", xBanda, y, anchoBanda, altoBanda);
     } catch (e) { /* si falla la imagen, seguimos sin banner */ }
   }
 
