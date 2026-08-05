@@ -71,6 +71,9 @@ const ReigerCalc = (function () {
     const segundaLineaConvertida = segundaLineaUSD * factorMoneda;
     const totalFinal = totalSetsConvertido + segundaLineaConvertida;
 
+    // Precio unitario del set convertido a la moneda de salida, SIN descuento.
+    // Se muestra siempre junto al de "con descuento" en modalidad Sudamérica c/desc.
+    const precioUnitarioConvertido = precioBaseUSD * factorMoneda;
     const precioUnitarioConDescuento = precioBaseUSD * (1 - descuentoAplicado) * factorMoneda;
 
     const precioBasePlan = baseParaPlanDePago === "Precio con IVA" ? totalFinal : totalSetsConvertido;
@@ -106,6 +109,7 @@ const ReigerCalc = (function () {
       totalSetsConvertido,
       segundaLineaConvertida,
       totalFinal,
+      precioUnitarioConvertido,
       precioUnitarioConDescuento,
       precioBasePlan,
       pagoInicio,

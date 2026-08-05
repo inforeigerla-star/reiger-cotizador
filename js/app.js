@@ -328,7 +328,8 @@
 
     let html = "";
     if (input.modalidad === "Sudamérica c/desc." && c.precioValido) {
-      html += fila("Precio unitario con descuento", ReigerCalc.formatoMoneda(c.precioUnitarioConDescuento, moneda));
+      html += fila("Precio unitario (sin descuento)", ReigerCalc.formatoMoneda(c.precioUnitarioConvertido, moneda));
+      html += fila(`Precio unitario (con descuento ${Math.round(c.descuentoAplicado * 100)}%)`, ReigerCalc.formatoMoneda(c.precioUnitarioConDescuento, moneda));
     }
     html += fila(c.etiquetaPrimeraLinea, ReigerCalc.formatoMoneda(c.totalSetsConvertido, moneda));
     html += fila(c.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(c.segundaLineaConvertida, moneda));
@@ -374,6 +375,7 @@
       validez: $("fValidez").value,
       incoterm: $("fIncoterm").value,
       set: nombreSet,
+      modalidad: input.modalidad,
       items: items.filter(it => it.codigo || it.descripcion),
       moneda,
       basePago: input.baseParaPlanDePago,
