@@ -1,0 +1,298 @@
+:root {
+  --violeta: #7B2D8B;
+  --violeta-oscuro: #5c2168;
+  --crema: #FFF8E1;
+  --lavanda: #EDD9F5;
+  --navy: #1F3864;
+  --amarillo: #FFFF00;
+  --amarillo-suave: #FFFDE7;
+  --gris: #808080;
+  --gris-claro: #F5F5F5;
+  --texto: #2b2b2b;
+  --borde: #d9c7e0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #f2eef5;
+  color: var(--texto);
+}
+
+.oculto { display: none !important; }
+
+/* ---------- Pantalla de PIN ---------- */
+#pantallaPin {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--violeta) 0%, var(--violeta-oscuro) 100%);
+}
+.caja-pin {
+  background: #fff;
+  padding: 2.5rem 2.5rem 2rem;
+  border-radius: 12px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.caja-pin h1 { font-size: 1.2rem; margin: .5rem 0 1.2rem; color: var(--violeta); }
+.caja-pin input {
+  width: 100%;
+  padding: .6rem .7rem;
+  font-size: 1rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  margin-bottom: .8rem;
+  text-align: center;
+  letter-spacing: 2px;
+}
+.caja-pin button {
+  width: 100%;
+  padding: .6rem;
+  background: var(--violeta);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.caja-pin button:hover { background: var(--violeta-oscuro); }
+.pin-error { color: #b3261e; font-size: .85rem; min-height: 1.2em; margin-bottom: .4rem; }
+.pin-aviso { font-size: .72rem; color: #888; margin-top: 1rem; line-height: 1.3; }
+
+/* ---------- Layout general ---------- */
+header.app-header {
+  background: var(--violeta);
+  color: #fff;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+header.app-header h1 { font-size: 1.3rem; margin: 0; letter-spacing: .5px; }
+header.app-header .contacto { font-size: .8rem; opacity: .9; text-align: right; }
+
+main {
+  max-width: 1100px;
+  margin: 1.2rem auto 3rem;
+  padding: 0 1rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 980px) {
+  main { grid-template-columns: 2fr 1fr; }
+  .col-ancha { grid-column: 1; }
+  .col-panel { grid-column: 2; grid-row: 1 / span 3; }
+}
+
+section.panel {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.1rem 1.3rem 1.3rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+section.panel h2 {
+  font-size: .95rem;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--violeta);
+  border-bottom: 2px solid var(--lavanda);
+  padding-bottom: .4rem;
+  margin: 0 0 .8rem;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem 1rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .7rem 1rem; }
+.campo { display: flex; flex-direction: column; gap: .25rem; }
+.campo label { font-size: .78rem; color: #555; font-weight: 600; }
+.campo input, .campo select, .campo textarea {
+  padding: .5rem .55rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: .92rem;
+  background: var(--amarillo-suave);
+  font-family: inherit;
+}
+.campo textarea { resize: vertical; min-height: 2.4rem; }
+
+/* Panel de control: fondo amarillo como en el Excel */
+.panel-control .campo input,
+.panel-control .campo select {
+  background: #fffde0;
+  border: 1px solid #e6d84a;
+}
+.panel-control .campo.solo-lectura input {
+  background: var(--gris-claro);
+  border-style: dashed;
+}
+
+/* ---------- Tabla de ítems ---------- */
+table.items {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: .3rem;
+  font-size: .87rem;
+}
+table.items th {
+  background: var(--navy);
+  color: #fff;
+  padding: .45rem .5rem;
+  text-align: left;
+  font-size: .78rem;
+  text-transform: uppercase;
+}
+table.items td {
+  padding: .35rem .5rem;
+  border-bottom: 1px solid #eee;
+  background: var(--crema);
+}
+table.items td.col-cant { width: 70px; }
+table.items td.col-codigo { width: 190px; }
+table.items input, table.items select {
+  width: 100%;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  padding: .3rem .35rem;
+  font-size: .85rem;
+  background: #fff;
+}
+table.items button.quitar {
+  background: none;
+  border: none;
+  color: #b3261e;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.items-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: .5rem;
+  font-size: .8rem;
+  color: #666;
+}
+.items-footer button {
+  background: var(--lavanda);
+  border: 1px solid var(--violeta);
+  color: var(--violeta-oscuro);
+  padding: .35rem .8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: .82rem;
+}
+.items-footer button:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ---------- Tabla de descuentos editable ---------- */
+table.descuentos { width: 100%; border-collapse: collapse; font-size: .82rem; }
+table.descuentos th { background: var(--lavanda); padding: .3rem; }
+table.descuentos td { padding: .25rem; text-align: center; }
+table.descuentos input {
+  width: 60px;
+  text-align: center;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  padding: .2rem;
+}
+
+/* ---------- Totales ---------- */
+.totales { font-size: .92rem; }
+.totales .fila {
+  display: flex;
+  justify-content: space-between;
+  padding: .35rem 0;
+  border-bottom: 1px dashed #e2d3e8;
+}
+.totales .fila.final {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--violeta-oscuro);
+  border-bottom: none;
+  border-top: 2px solid var(--violeta);
+  margin-top: .3rem;
+  padding-top: .6rem;
+}
+.totales .fila.pago { color: #555; font-size: .87rem; }
+
+/* ---------- Botonera acciones ---------- */
+.acciones { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+.btn {
+  padding: .65rem 1.1rem;
+  border-radius: 7px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: .9rem;
+}
+.btn-primario { background: var(--violeta); color: #fff; }
+.btn-primario:hover { background: var(--violeta-oscuro); }
+.btn-secundario { background: #fff; color: var(--violeta); border: 1px solid var(--violeta); }
+.btn-secundario:hover { background: var(--lavanda); }
+.btn-whatsapp { background: #25D366; color: #fff; }
+.btn-whatsapp:hover { background: #1ea952; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ---------- Estado del archivo Excel cargado ---------- */
+.estado-archivo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .6rem .8rem;
+  border-radius: 8px;
+  background: var(--gris-claro);
+  font-size: .85rem;
+  margin-bottom: .8rem;
+}
+.estado-archivo.ok { background: #e6f4ea; color: #1e7a34; }
+.estado-archivo.error { background: #fdeceb; color: #b3261e; }
+.estado-archivo input[type=file] { font-size: .8rem; }
+
+/* ---------- Historial ---------- */
+.historial-tabla { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.historial-tabla th {
+  background: var(--violeta); color: #fff; padding: .4rem .5rem; text-align: left;
+  position: sticky; top: 0;
+}
+.historial-tabla td { padding: .35rem .5rem; border-bottom: 1px solid #eee; }
+.historial-tabla tr:hover td { background: #faf5fc; }
+.historial-wrap { max-height: 380px; overflow: auto; border: 1px solid #eee; border-radius: 8px; }
+.badge {
+  display: inline-block; padding: .1rem .5rem; border-radius: 20px;
+  background: var(--lavanda); color: var(--violeta-oscuro); font-size: .72rem; font-weight: 600;
+}
+
+.aviso {
+  font-size: .78rem;
+  color: #7a5a00;
+  background: #fff8e1;
+  border: 1px solid #f0e0a0;
+  padding: .5rem .7rem;
+  border-radius: 6px;
+  margin-top: .6rem;
+}
+
+footer.app-footer {
+  text-align: center;
+  font-size: .75rem;
+  color: #999;
+  padding: 1.5rem 0 2rem;
+}
+
+.modal-fondo {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+  padding: 1rem;
+}
+.modal-caja {
+  background: #fff; border-radius: 10px; max-width: 900px; width: 100%;
+  max-height: 85vh; overflow: auto; padding: 1.3rem 1.5rem;
+}
+.modal-caja h2 { color: var(--violeta); margin-top: 0; }
+.modal-cerrar { float: right; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #888; }
