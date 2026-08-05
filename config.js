@@ -9,7 +9,7 @@
 */
 window.REIGER_CONFIG = {
   // PIN de acceso (texto libre, podés poner letras y números)
-  pin: "1982",
+  pin: "REIGER2026",
 
   // Datos de contacto que aparecen en el encabezado del PDF
   contacto: {

@@ -198,57 +198,17 @@ const ReigerPdf = (function () {
     return doc;
   }
 
-  // Réplica del banner institucional (web, redes, dirección y logo),
-  // fijo al pie de la página, en vectores para que se vea nítido y no
-  // dependa de ningún archivo de imagen aparte del logo ya embebido.
+  // Banner institucional real (imagen provista), fijo al pie de la página.
   function dibujarBannerPie(doc, anchoPag, margen) {
     const altoPag = 297;
+    if (!window.REIGER_BANNER_BASE64) return;
     const anchoBanda = anchoPag - margen * 2;
-    const altoBarra = 12, altoBlanca = 12;
-    const yTop = altoPag - 12 - altoBarra - altoBlanca;
-
-    // Título
-    doc.setTextColor(20, 20, 20);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10.5);
-    doc.text("REIGER SUSPENSION L.A.", anchoPag / 2, yTop - 2, { align: "center" });
-    doc.setDrawColor(...VIOLETA);
-    doc.setLineWidth(0.5);
-    doc.line(anchoPag / 2 - 32, yTop - 0.5, anchoPag / 2 + 32, yTop - 0.5);
-
-    // Barra violeta: web + redes
-    doc.setFillColor(...VIOLETA);
-    doc.rect(margen, yTop, anchoBanda, altoBarra, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.text("WWW.REIGERSUSPENSIONLA.COM", anchoPag / 2, yTop + 5, { align: "center" });
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(6.8);
-    doc.text(
-      "Facebook: Reiger Suspension L.A     X: @reiger_la     Instagram: @reiger_suspension_la",
-      anchoPag / 2, yTop + 9.5, { align: "center" }
-    );
-
-    // Franja blanca: dirección, contacto y logo
-    const yBlanca = yTop + altoBarra;
-    const logoAnchoPie = 16, logoAltoPie = logoAnchoPie * (507 / 630);
-    if (window.REIGER_LOGO_BASE64) {
-      try {
-        doc.addImage(
-          window.REIGER_LOGO_BASE64, "JPEG",
-          anchoPag - margen - logoAnchoPie, yBlanca + (altoBlanca - logoAltoPie) / 2,
-          logoAnchoPie, logoAltoPie
-        );
-      } catch (e) { /* si falla la imagen, seguimos sin logo acá */ }
-    }
-    doc.setTextColor(...GRIS_TEXTO);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-    doc.text("Carraffa 145, La Cumbre", margen + 2, yBlanca + 5);
-    doc.text("Córdoba, Argentina", margen + 2, yBlanca + 9);
-    doc.text("rservicesuspension@gmail.com", margen + 45, yBlanca + 5);
-    doc.text("+549 3548430798", margen + 45, yBlanca + 9);
+    // Proporción real de la imagen (1282 x 247 px).
+    const altoBanda = anchoBanda * (247 / 1282);
+    const yTop = altoPag - 12 - altoBanda;
+    try {
+      doc.addImage(window.REIGER_BANNER_BASE64, "JPEG", margen, yTop, anchoBanda, altoBanda);
+    } catch (e) { /* si falla la imagen, seguimos sin banner */ }
   }
 
   function nombreArchivo(numero, cliente, set) {
