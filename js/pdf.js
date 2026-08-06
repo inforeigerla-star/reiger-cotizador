@@ -200,19 +200,28 @@ const ReigerPdf = (function () {
   }
 
   // Banner institucional real (imagen provista), centrado, ubicado
-  // justo después del resto del contenido. Si no entra en lo que
-  // queda de la página, pasa a una nueva en vez de quedar cortado.
+  // justo después del resto del contenido. Nunca genera una segunda
+  // página: si no queda espacio para el tamaño ideal (85% del ancho),
+  // se va achicando hasta un mínimo legible para entrar siempre en
+  // la misma hoja. Si ni el mínimo entra (cotización extremadamente
+  // larga), directamente no se dibuja, en vez de superponerse.
   function dibujarBannerPie(doc, anchoPag, margen, y) {
     if (!window.REIGER_BANNER_BASE64) return;
     const altoPag = 297;
-    const anchoBanda = (anchoPag - margen * 2) * 0.85;
-    // Proporción real de la imagen (1282 x 247 px).
-    const altoBanda = anchoBanda * (247 / 1282);
+    const margenInferior = 6;
+    const disponible = altoPag - margenInferior - y;
+
+    const proporcion = 247 / 1282; // alto/ancho real de la imagen
+    const anchoIdeal = (anchoPag - margen * 2) * 0.85;
+    const altoIdeal = anchoIdeal * proporcion;
+    const altoMinimo = 9; // por debajo de esto ya no se lee bien
+
+    if (disponible < altoMinimo) return; // no hay lugar ni para el mínimo
+
+    const altoBanda = Math.min(altoIdeal, disponible);
+    const anchoBanda = altoBanda / proporcion;
     const xBanda = (anchoPag - anchoBanda) / 2;
-    if (y + altoBanda > altoPag - 6) {
-      doc.addPage();
-      y = 20;
-    }
+
     try {
       doc.addImage(window.REIGER_BANNER_BASE64, "JPEG", xBanda, y, anchoBanda, altoBanda);
     } catch (e) { /* si falla la imagen, seguimos sin banner */ }
