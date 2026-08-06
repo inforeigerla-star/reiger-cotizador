@@ -111,38 +111,54 @@ const ReigerPdf = (function () {
     // -------- Totales --------
     const anchoBloque = 80;
     const xBloque = anchoPag - margen - anchoBloque;
+    const xDerecha = anchoPag - margen;
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "normal");
+
+    // Escribe una línea "etiqueta ... valor" del bloque de totales.
+    // Los montos en ARS pueden tener muchos más dígitos que en USD
+    // (millones vs. miles) y, junto a etiquetas largas como "PRECIO
+    // TOTAL (sin IVA ni aranceles):", pueden llegar a superponerse si
+    // se fuerzan a la misma línea. Por eso primero medimos el ancho
+    // real de etiqueta y valor con la fuente/tamaño ya aplicados; si
+    // no entran uno al lado del otro sin tocarse, el valor pasa a una
+    // segunda línea propia, alineado a la derecha.
+    function lineaTotal(label, valor, yPos, negrita, tamano) {
+      doc.setFont("helvetica", negrita ? "bold" : "normal");
+      doc.setFontSize(tamano);
+      const anchoLabel = doc.getTextWidth(label);
+      const anchoValor = doc.getTextWidth(valor);
+      const finLabel = xBloque + anchoLabel;
+      const inicioValor = xDerecha - anchoValor;
+      doc.text(label, xBloque, yPos);
+      if (finLabel + 3 <= inicioValor) {
+        doc.text(valor, xDerecha, yPos, { align: "right" });
+        return yPos + 6;
+      }
+      doc.text(valor, xDerecha, yPos + 5, { align: "right" });
+      return yPos + 11;
+    }
 
     // En "Sudamérica c/desc." se muestra el precio unitario con y sin
     // descuento antes del total, para que quede clara la rebaja aplicada.
     if (datos.modalidad === "Sudamérica c/desc.") {
       const pct = Math.round((datos.calculo.descuentoAplicado || 0) * 100);
-      doc.text("Precio unitario (sin descuento):", xBloque, y);
-      doc.text(ReigerCalc.formatoMoneda(datos.calculo.precioUnitarioConvertido, datos.moneda), anchoPag - margen, y, { align: "right" });
-      y += 6;
-      doc.text(`Precio unitario (con descuento ${pct}%):`, xBloque, y);
-      doc.text(ReigerCalc.formatoMoneda(datos.calculo.precioUnitarioConDescuento, datos.moneda), anchoPag - margen, y, { align: "right" });
-      y += 6;
+      y = lineaTotal("Precio unitario (sin descuento):", ReigerCalc.formatoMoneda(datos.calculo.precioUnitarioConvertido, datos.moneda), y, false, 9.5);
+      y = lineaTotal(`Precio unitario (con descuento ${pct}%):`, ReigerCalc.formatoMoneda(datos.calculo.precioUnitarioConDescuento, datos.moneda), y, false, 9.5);
     }
 
-    doc.text(datos.calculo.etiquetaPrimeraLinea, xBloque, y);
-    doc.text(ReigerCalc.formatoMoneda(datos.calculo.totalSetsConvertido, datos.moneda), anchoPag - margen, y, { align: "right" });
-    y += 6;
-    doc.text(datos.calculo.etiquetaSegundaLinea, xBloque, y);
-    doc.text(ReigerCalc.formatoMoneda(datos.calculo.segundaLineaConvertida, datos.moneda), anchoPag - margen, y, { align: "right" });
-    y += 8;
+    y = lineaTotal(datos.calculo.etiquetaPrimeraLinea, ReigerCalc.formatoMoneda(datos.calculo.totalSetsConvertido, datos.moneda), y, false, 9.5);
+    y = lineaTotal(datos.calculo.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(datos.calculo.segundaLineaConvertida, datos.moneda), y, false, 9.5);
+    y += 2;
 
     doc.setDrawColor(...VIOLETA);
     doc.setLineWidth(0.4);
-    doc.line(xBloque, y - 4, anchoPag - margen, y - 4);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11.5);
+    doc.line(xBloque, y, anchoPag - margen, y);
+    y += 6;
     doc.setTextColor(...VIOLETA_OSC);
-    doc.text(datos.calculo.etiquetaTotalFinal, xBloque, y + 2);
-    doc.text(ReigerCalc.formatoMoneda(datos.calculo.totalFinal, datos.moneda), anchoPag - margen, y + 2, { align: "right" });
+    y = lineaTotal(datos.calculo.etiquetaTotalFinal, ReigerCalc.formatoMoneda(datos.calculo.totalFinal, datos.moneda), y, true, 11.5);
     doc.setTextColor(...GRIS_TEXTO);
-    y += 12;
+    y += 6;
 
     // -------- Forma de pago --------
     doc.setFillColor(...LAVANDA);
