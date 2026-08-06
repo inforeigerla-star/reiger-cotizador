@@ -58,7 +58,7 @@
           </div>
           <div class="campo" style="grid-column: 1 / -1;">
             <label>Set / Descripción de la oferta</label>
-            <select id="fSet"></select>
+            <input type="text" id="fSet" list="datalistSets" placeholder="Escribí para buscar un set…" autocomplete="off">
           </div>
           <div class="campo">
             <label>Cond. de pago</label>
@@ -200,6 +200,7 @@
 </div>
 
 <datalist id="datalistCodigos"></datalist>
+<datalist id="datalistSets"></datalist>
 
 <!-- Librerías (CDN, sin necesidad de build) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>

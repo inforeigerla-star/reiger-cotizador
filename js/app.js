@@ -152,7 +152,7 @@
 
     // Listeners
     $("inputExcel").addEventListener("change", onArchivoSeleccionado);
-    $("fSet").addEventListener("change", onSetSeleccionado);
+    $("fSet").addEventListener("input", onSetSeleccionado);
     $("fModalidad").addEventListener("change", () => {
       actualizarVisibilidadDescuentos();
       limitarItemsAlMaximo();
@@ -237,13 +237,14 @@
 
     const fSet = $("fSet");
     const setElegido = fSet.value;
-    fSet.innerHTML = '<option value="">— Elegí un set —</option>';
+    const datalistSets = $("datalistSets");
+    datalistSets.innerHTML = "";
     data.setOrder.forEach(nombre => {
       const op = document.createElement("option");
-      op.value = nombre; op.textContent = nombre;
-      fSet.appendChild(op);
+      op.value = nombre;
+      datalistSets.appendChild(op);
     });
-    if (setElegido && data.setOrder.includes(setElegido)) fSet.value = setElegido;
+    fSet.value = (setElegido && data.setOrder.includes(setElegido)) ? setElegido : "";
 
     const datalist = $("datalistCodigos");
     datalist.innerHTML = "";
@@ -262,6 +263,11 @@
   function onSetSeleccionado() {
     const nombreSet = $("fSet").value;
     if (!excelData || !nombreSet) { recalcularTotales(); return; }
+    // El campo ahora es de texto libre con autocompletado (datalist): mientras
+    // el usuario todavía está escribiendo o filtrando, el valor no coincide
+    // con ningún set real todavía — no tocamos los ítems hasta que elija uno
+    // exacto, para no ir vaciando la tabla en cada letra que tipea.
+    if (!excelData.setOrder.includes(nombreSet)) { recalcularTotales(); return; }
 
     const componentes = excelData.componentesPorSet[nombreSet] || [];
     const max = maxItemsActual();
