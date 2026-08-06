@@ -38,15 +38,6 @@
     <div class="col-ancha" style="display:flex; flex-direction:column; gap:1rem;">
 
       <section class="panel">
-        <h2>Base de datos (Excel)</h2>
-        <div class="estado-archivo" id="estadoArchivo">
-          Todavía no cargaste tu archivo <strong>BASE_DE_DATOS_3.xlsm</strong>.
-          <input type="file" id="inputExcel" accept=".xlsx,.xlsm,.xls">
-        </div>
-        <div class="aviso">El archivo se procesa acá mismo, en tu navegador. No se sube a ningún servidor. Queda guardado en este navegador para la próxima vez que entres — solo tenés que volver a seleccionarlo cuando lo hayas actualizado con precios nuevos.</div>
-      </section>
-
-      <section class="panel">
         <h2>Datos del cliente</h2>
         <div class="grid-2">
           <div class="campo"><label>Cliente</label><input id="fCliente" type="text"></div>
@@ -91,6 +82,15 @@
           <button type="button" id="btnAgregarItem">+ Agregar ítem</button>
         </div>
         <div class="aviso">Al elegir un Set arriba, esta tabla se completa sola con sus componentes. Podés editar el código, la cantidad o borrar filas antes de generar el PDF.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Base de datos (Excel)</h2>
+        <div class="estado-archivo" id="estadoArchivo">
+          Todavía no cargaste tu archivo <strong>BASE_DE_DATOS_3.xlsm</strong>.
+          <input type="file" id="inputExcel" accept=".xlsx,.xlsm,.xls">
+        </div>
+        <div class="aviso">El archivo se procesa acá mismo, en tu navegador. No se sube a ningún servidor. Queda guardado en este navegador para la próxima vez que entres — solo tenés que volver a seleccionarlo cuando lo hayas actualizado con precios nuevos.</div>
       </section>
 
     </div>
