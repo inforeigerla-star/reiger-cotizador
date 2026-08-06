@@ -70,6 +70,12 @@ body {
 header.app-header {
   background: var(--violeta);
   color: #fff;
+  padding: 0;
+  box-shadow: 0 1px 6px rgba(0,0,0,.15);
+}
+.header-interior {
+  max-width: 1500px;
+  margin: 0 auto;
   padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
@@ -81,23 +87,31 @@ header.app-header h1 { font-size: 1.3rem; margin: 0; letter-spacing: .5px; }
 header.app-header .contacto { font-size: .8rem; opacity: .9; text-align: right; }
 
 main {
-  max-width: 1100px;
-  margin: 1.2rem auto 3rem;
-  padding: 0 1rem;
+  max-width: 1500px;
+  margin: 1.4rem auto 3rem;
+  padding: 0 1.5rem;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 1rem;
+  gap: 1.4rem;
+  align-items: start;
 }
 @media (min-width: 980px) {
-  main { grid-template-columns: 2fr 1fr; }
+  main { grid-template-columns: 1fr 380px; }
   .col-ancha { grid-column: 1; }
-  .col-panel { grid-column: 2; grid-row: 1 / span 3; }
+  .col-panel {
+    grid-column: 2;
+    position: sticky;
+    top: 1.2rem;
+    max-height: calc(100vh - 2.4rem);
+    overflow-y: auto;
+    padding-right: .2rem;
+  }
 }
 
 section.panel {
   background: #fff;
   border-radius: 10px;
-  padding: 1.1rem 1.3rem 1.3rem;
+  padding: 1.3rem 1.5rem 1.5rem;
   box-shadow: 0 1px 4px rgba(0,0,0,.08);
 }
 section.panel h2 {
@@ -110,19 +124,28 @@ section.panel h2 {
   margin: 0 0 .8rem;
 }
 
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem 1rem; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .7rem 1rem; }
-.campo { display: flex; flex-direction: column; gap: .25rem; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem 1.2rem; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .9rem 1.2rem; }
+.campo { display: flex; flex-direction: column; gap: .3rem; }
 .campo label { font-size: .78rem; color: #555; font-weight: 600; }
 .campo input, .campo select, .campo textarea {
-  padding: .5rem .55rem;
+  padding: .55rem .6rem;
   border: 1px solid var(--borde);
   border-radius: 6px;
   font-size: .92rem;
   background: var(--amarillo-suave);
   font-family: inherit;
+  transition: border-color .15s, box-shadow .15s;
 }
 .campo textarea { resize: vertical; min-height: 2.4rem; }
+
+.campo input:focus, .campo select:focus, .campo textarea:focus,
+table.items input:focus, table.items select:focus,
+table.descuentos input:focus {
+  outline: none;
+  border-color: var(--violeta);
+  box-shadow: 0 0 0 3px rgba(123,45,139,.14);
+}
 
 /* Panel de control: fondo amarillo como en el Excel */
 .panel-control .campo input,
@@ -151,10 +174,11 @@ table.items th {
   text-transform: uppercase;
 }
 table.items td {
-  padding: .35rem .5rem;
+  padding: .45rem .5rem;
   border-bottom: 1px solid #eee;
   background: var(--crema);
 }
+table.items tr:hover td { background: #fdf1c8; }
 table.items td.col-cant { width: 70px; }
 table.items td.col-codigo { width: 190px; }
 table.items input, table.items select {
