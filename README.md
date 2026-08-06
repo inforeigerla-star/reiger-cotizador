@@ -29,13 +29,6 @@ en el navegador — Windows, Mac, Linux o celular — sin instalar nada.
    moneda). Los totales se recalculan solos.
 6. Botón **"Generar PDF"**: descarga el PDF y lo registra en el
    historial con numeración automática.
-7. Botón **"Abrir WhatsApp con el mensaje"**: abre WhatsApp con el
-   texto ya escrito. Como el navegador no puede copiar el PDF al
-   portapapeles (eso era un truco específico de la macro de Excel con
-   PowerShell, que no existe en la web), tenés que **adjuntar
-   manualmente** el PDF que se acaba de descargar — arrastralo al chat
-   o usá el botón del clip. En el celular es más directo: el botón
-   "compartir" del navegador manda el PDF derecho a WhatsApp.
 
 ## Publicar la app gratis en GitHub Pages
 
@@ -71,7 +64,6 @@ Abrí ese archivo con cualquier editor de texto para cambiar:
 - Los valores por defecto del panel de control (envío unitario, IVA,
   validez, incoterm, etc.)
 - La tabla de descuentos por cantidad de sets.
-- La plantilla del mensaje de WhatsApp.
 
 Después de editarlo, volvé a subirlo a GitHub como se explica arriba.
 
@@ -85,10 +77,6 @@ Después de editarlo, volvé a subirlo a GitHub como se explica arriba.
   el navegador de cada PC/celular donde uses la app. Para llevarlo de
   un lado a otro: "Ver historial" → "Exportar a Excel" en un
   dispositivo, y "Importar historial" en el otro.
-- **El envío por WhatsApp requiere un paso manual** (adjuntar el PDF
-  descargado), a diferencia del copiado automático al portapapeles que
-  hacía la macro de Excel. Automatizarlo del todo requeriría la API
-  oficial de WhatsApp Business (de pago, con aprobación de Meta).
 - **Los totales pueden no coincidir con cotizaciones viejas del
   Excel.** Se encontró que la celda que calculaba el IVA/envío en el
   Excel (F32) estaba pisada con un valor fijo (2.500) en vez de

@@ -69,7 +69,6 @@ const ReigerHistorial = (function () {
       "SET COTIZADO": r.set,
       "TOTAL": r.total,
       "MONEDA": r.moneda,
-      "WHATSAPP": r.whatsapp,
       "ESTADO": r.estado || "GENERADA"
     }));
     const ws = XLSX.utils.json_to_sheet(filas);
@@ -102,7 +101,6 @@ const ReigerHistorial = (function () {
               set: f["SET COTIZADO"] || "",
               total: Number(f["TOTAL"]) || 0,
               moneda: f["MONEDA"] || "",
-              whatsapp: f["WHATSAPP"] || "",
               estado: f["ESTADO"] || "GENERADA"
             };
           });

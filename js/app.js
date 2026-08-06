@@ -2,7 +2,7 @@
   app.js
   ------------------------------------------------------------------
   Wiring de la interfaz: PIN, carga de Excel, formulario, ítems,
-  totales en vivo, generación de PDF, historial y WhatsApp.
+  totales en vivo, generación de PDF e historial.
 */
 
 (function () {
@@ -12,7 +12,6 @@
   let excelData = null;         // resultado de ReigerXlsx.cargarArchivo
   let items = [];               // [{codigo, descripcion, cantidad}]
   let tablaDescuentos = cargarTablaDescuentos();
-  let ultimaCotizacionGenerada = null; // para habilitar el botón de WhatsApp
 
   // ---------------- Utilidades ----------------
   const $ = (id) => document.getElementById(id);
@@ -169,7 +168,6 @@
     });
 
     $("btnGenerarPdf").addEventListener("click", generarPdf);
-    $("btnWhatsapp").addEventListener("click", abrirWhatsapp);
 
     $("btnVerHistorial").addEventListener("click", () => {
       renderHistorial();
@@ -478,38 +476,12 @@
       set: nombreSet,
       total: Number(calculo.totalFinal.toFixed(2)),
       moneda,
-      whatsapp: $("fWhatsapp").value.trim(),
       estado: "GENERADA"
     };
     ReigerHistorial.agregarRegistro(registro);
     $("fNConsulta").value = ReigerHistorial.siguienteNumero();
 
-    ultimaCotizacionGenerada = { registro, archivoNombre: nombreArchivo };
-    $("btnWhatsapp").disabled = !registro.whatsapp;
-
-    alert(
-      `Cotización N° ${numero} generada y descargada como:\n${nombreArchivo}\n\n` +
-      `Para mandarla por WhatsApp: usá el botón "Abrir WhatsApp con el mensaje" y ` +
-      `adjuntá manualmente el PDF que se acaba de descargar (tu navegador no permite ` +
-      `copiarlo al portapapeles como hacía la macro de Excel).`
-    );
-  }
-
-  function abrirWhatsapp() {
-    if (!ultimaCotizacionGenerada) return;
-    const r = ultimaCotizacionGenerada.registro;
-    if (!r.whatsapp) { alert("Falta el WhatsApp del cliente."); return; }
-
-    const mensaje = CFG.mensajeWhatsapp
-      .replace("{cliente}", r.cliente)
-      .replace("{numero}", r.numero)
-      .replace("{set}", r.set)
-      .replace("{total}", r.total.toLocaleString("es-AR"))
-      .replace("{moneda}", r.moneda);
-
-    const numero = r.whatsapp.replace(/[^0-9]/g, "");
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, "_blank");
+    alert(`Cotización N° ${numero} generada y descargada como:\n${nombreArchivo}`);
   }
 
   // ==========================================================
@@ -528,11 +500,10 @@
         <td>${r.set || ""}</td>
         <td>${(r.total ?? 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</td>
         <td>${r.moneda || ""}</td>
-        <td>${r.whatsapp || ""}</td>
         <td>${r.estado || ""}</td>
         <td><button type="button" class="eliminar" data-numero="${r.numero}" title="Eliminar esta cotización del historial">✕</button></td>
       </tr>
-    `).join("") || `<tr><td colspan="11" style="text-align:center; color:#999; padding:1.5rem;">Todavía no generaste ninguna cotización.</td></tr>`;
+    `).join("") || `<tr><td colspan="10" style="text-align:center; color:#999; padding:1.5rem;">Todavía no generaste ninguna cotización.</td></tr>`;
 
     tbody.querySelectorAll("button.eliminar").forEach(btn => {
       btn.addEventListener("click", () => {

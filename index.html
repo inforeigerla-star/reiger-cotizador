@@ -75,10 +75,6 @@
               <option>Transferencia</option><option>Efectivo</option>
             </select>
           </div>
-          <div class="campo">
-            <label>WhatsApp del cliente (con código de país, solo números)</label>
-            <input id="fWhatsapp" type="text" placeholder="5493548743798">
-          </div>
         </div>
       </section>
 
@@ -168,7 +164,6 @@
       <section class="panel">
         <div class="acciones" style="flex-direction:column;">
           <button class="btn btn-primario" id="btnGenerarPdf">Generar PDF de la cotización</button>
-          <button class="btn btn-whatsapp" id="btnWhatsapp" disabled>Abrir WhatsApp con el mensaje</button>
           <button class="btn btn-secundario" id="btnVerHistorial">Ver historial</button>
         </div>
       </section>
@@ -195,7 +190,7 @@
         <thead>
           <tr>
             <th>N°</th><th>Fecha</th><th>Cliente</th><th>País</th><th>Modalidad</th>
-            <th>Set</th><th>Total</th><th>Moneda</th><th>WhatsApp</th><th>Estado</th><th></th>
+            <th>Set</th><th>Total</th><th>Moneda</th><th>Estado</th><th></th>
           </tr>
         </thead>
         <tbody id="tbodyHistorial"></tbody>

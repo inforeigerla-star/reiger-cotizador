@@ -1,6 +1,5 @@
 /*
   CONFIGURACIÓN DE LA APP
-  (actualizado 2026-08-06 para forzar un nuevo build de GitHub Pages)
   ------------------------------------------------------------------
   Editá estos valores antes de publicar la app (o cuando quieras
   cambiarlos). Este archivo se sirve tal cual al navegador: cualquiera
@@ -42,13 +41,6 @@ window.REIGER_CONFIG = {
     monedaSalida: "USD",
     baseParaPlanDePago: "Precio sin IVA"
   },
-
-  // Plantilla del mensaje de WhatsApp. Variables disponibles:
-  // {cliente} {numero} {set} {total} {moneda}
-  mensajeWhatsapp:
-    "Hola {cliente}, te compartimos la cotización N° {numero} para {set}. " +
-    "Total: {moneda} {total}. Cualquier consulta quedamos a disposición. " +
-    "Saludos, Reiger Suspension Latinoamérica.",
 
   // Tabla de descuentos por cantidad de sets (modalidad "Sudamérica c/desc.")
   // Editable también desde la propia app (panel de control); esto es solo

@@ -261,8 +261,6 @@ table.descuentos input {
 .btn-primario:hover { background: var(--violeta-oscuro); }
 .btn-secundario { background: #fff; color: var(--violeta); border: 1px solid var(--violeta); }
 .btn-secundario:hover { background: var(--lavanda); }
-.btn-whatsapp { background: #25D366; color: #fff; }
-.btn-whatsapp:hover { background: #1ea952; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ---------- Estado del archivo Excel cargado ---------- */
