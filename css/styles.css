@@ -229,23 +229,38 @@ table.descuentos input {
 }
 
 /* ---------- Totales ---------- */
-.totales { font-size: .92rem; }
+/* Siempre en un solo renglón: la etiqueta se trunca con "…" si no
+   entra, pero el monto (lo importante) nunca se corta ni pasa a una
+   segunda línea. */
+.totales { font-size: .85rem; }
 .totales .fila {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: .5rem;
   padding: .35rem 0;
   border-bottom: 1px dashed #e2d3e8;
 }
+.totales .fila span:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.totales .fila span:last-child {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .totales .fila.final {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--violeta-oscuro);
   border-bottom: none;
   border-top: 2px solid var(--violeta);
   margin-top: .3rem;
   padding-top: .6rem;
 }
-.totales .fila.pago { color: #555; font-size: .87rem; }
+.totales .fila.pago { color: #555; font-size: .8rem; }
 
 /* ---------- Botonera acciones ---------- */
 .acciones { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
