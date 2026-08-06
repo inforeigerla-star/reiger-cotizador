@@ -1,5 +1,6 @@
 /*
   CONFIGURACIÓN DE LA APP
+  (actualizado 2026-08-06 para forzar un nuevo build de GitHub Pages)
   ------------------------------------------------------------------
   Editá estos valores antes de publicar la app (o cuando quieras
   cambiarlos). Este archivo se sirve tal cual al navegador: cualquiera
