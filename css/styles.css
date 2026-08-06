@@ -41,7 +41,7 @@ body {
 }
 .caja-pin h1 { font-size: 1.2rem; margin: .5rem 0 1.2rem; color: var(--violeta); }
 .logo-pin { width: 110px; height: auto; margin-bottom: .3rem; }
-.logo-header { height: 42px; width: auto; background: #fff; border-radius: 8px; padding: 3px 6px; }
+.logo-header { height: 68px; width: auto; background: #fff; border-radius: 8px; padding: 4px 8px; }
 .caja-pin input {
   width: 100%;
   padding: .6rem .7rem;
