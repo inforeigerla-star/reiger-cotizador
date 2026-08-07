@@ -45,7 +45,7 @@ const ReigerPdf = (function () {
     doc.setDrawColor(...VIOLETA);
     doc.setLineWidth(0.6);
     doc.line(margen, y, anchoPag - margen, y);
-    y += 6;
+    y += 4;
 
     // -------- Datos del cliente --------
     doc.setFillColor(...LAVANDA);
@@ -54,7 +54,7 @@ const ReigerPdf = (function () {
     doc.setFontSize(9);
     doc.setTextColor(...VIOLETA_OSC);
     doc.text("DATOS DEL CLIENTE", margen + 2, y + 4.3);
-    y += 10;
+    y += 9;
 
     const colIzqX = margen, colDerX = 110;
     doc.setFontSize(9);
@@ -75,20 +75,20 @@ const ReigerPdf = (function () {
     filasIzq.forEach(([label, valor]) => {
       doc.setFont("helvetica", "bold"); doc.text(label, colIzqX, yy);
       doc.setFont("helvetica", "normal"); doc.text(String(valor || "-"), colIzqX + 24, yy);
-      yy += 5.2;
+      yy += 4.8;
     });
     let yy2 = y;
     filasDer.forEach(([label, valor]) => {
       doc.setFont("helvetica", "bold"); doc.text(label, colDerX, yy2);
       doc.setFont("helvetica", "normal"); doc.text(String(valor || "-"), colDerX + 26, yy2);
-      yy2 += 5.2;
+      yy2 += 4.8;
     });
-    y = Math.max(yy, yy2) + 2;
+    y = Math.max(yy, yy2) + 1.5;
 
     doc.setFont("helvetica", "bold"); doc.text("Descripción de la oferta:", colIzqX, y);
     doc.setFont("helvetica", "normal");
     doc.text(String(datos.set || "-"), colIzqX + 45, y);
-    y += 8;
+    y += 5.5;
 
     // -------- Tabla de ítems --------
     const body = datos.items.map(it => [it.codigo, it.descripcion, String(it.cantidad)]);
@@ -98,7 +98,7 @@ const ReigerPdf = (function () {
       head: [["Cód.", "Descripción del Producto", "Cant."]],
       body,
       theme: "plain",
-      styles: { fontSize: 9, cellPadding: 1.8, textColor: GRIS_TEXTO, lineColor: [230, 220, 235], lineWidth: 0.1 },
+      styles: { fontSize: 9, cellPadding: 1.4, textColor: GRIS_TEXTO, lineColor: [230, 220, 235], lineWidth: 0.1 },
       headStyles: { fillColor: NAVY, textColor: 255, fontStyle: "bold", fontSize: 8.5 },
       bodyStyles: { fillColor: CREMA },
       columnStyles: {
@@ -106,7 +106,7 @@ const ReigerPdf = (function () {
         2: { cellWidth: 18, halign: "center" }
       }
     });
-    y = doc.lastAutoTable.finalY + 8;
+    y = doc.lastAutoTable.finalY + 5;
 
     // -------- Totales --------
     const anchoBloque = 80;
@@ -149,16 +149,16 @@ const ReigerPdf = (function () {
 
     y = lineaTotal(datos.calculo.etiquetaPrimeraLinea, ReigerCalc.formatoMoneda(datos.calculo.totalSetsConvertido, datos.moneda), y, false, 9.5);
     y = lineaTotal(datos.calculo.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(datos.calculo.segundaLineaConvertida, datos.moneda), y, false, 9.5);
-    y += 2;
+    y += 1;
 
     doc.setDrawColor(...VIOLETA);
     doc.setLineWidth(0.4);
     doc.line(xBloque, y, anchoPag - margen, y);
-    y += 6;
+    y += 4;
     doc.setTextColor(...VIOLETA_OSC);
     y = lineaTotal(datos.calculo.etiquetaTotalFinal, ReigerCalc.formatoMoneda(datos.calculo.totalFinal, datos.moneda), y, true, 11.5);
     doc.setTextColor(...GRIS_TEXTO);
-    y += 6;
+    y += 4;
 
     // -------- Forma de pago --------
     doc.setFillColor(...LAVANDA);
@@ -168,19 +168,19 @@ const ReigerPdf = (function () {
     doc.setTextColor(...VIOLETA_OSC);
     doc.text("FORMA DE PAGO", margen + 2, y + 4.3);
     doc.setTextColor(...GRIS_TEXTO);
-    y += 10;
+    y += 9;
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
-    doc.text(`Precio base (${datos.basePago}): ${ReigerCalc.formatoMoneda(datos.calculo.precioBasePlan, datos.moneda)}`, margen, y); y += 5.2;
-    doc.text(`50% para iniciar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoInicio, datos.moneda)}`, margen, y); y += 5.2;
-    doc.text(`50% al finalizar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoFinal, datos.moneda)}`, margen, y); y += 5.2;
-    doc.text("Pago mediante transferencia bancaria.", margen, y); y += 4.5;
+    doc.text(`Precio base (${datos.basePago}): ${ReigerCalc.formatoMoneda(datos.calculo.precioBasePlan, datos.moneda)}`, margen, y); y += 4.8;
+    doc.text(`50% para iniciar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoInicio, datos.moneda)}`, margen, y); y += 4.8;
+    doc.text(`50% al finalizar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoFinal, datos.moneda)}`, margen, y); y += 4.8;
+    doc.text("Pago mediante transferencia bancaria.", margen, y); y += 3.8;
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
     doc.text("Si no cuenta con la posibilidad de efectuar transferencias al exterior, no dude en consultarnos.", margen, y);
     doc.setTextColor(...GRIS_TEXTO);
-    y += 8;
+    y += 5.5;
 
     // -------- Notas legales --------
     doc.setFontSize(7.3);
@@ -188,24 +188,24 @@ const ReigerPdf = (function () {
     (datos.notas || []).forEach(nota => {
       const lineas = doc.splitTextToSize(nota, anchoPag - margen * 2);
       doc.text(lineas, margen, y);
-      y += lineas.length * 3.4 + 1;
+      y += lineas.length * 3.1 + 0.6;
     });
-    y += 3;
+    y += 2;
 
     // -------- Datos bancarios --------
     doc.setDrawColor(220, 210, 225);
     doc.setLineWidth(0.2);
     doc.line(margen, y, anchoPag - margen, y);
-    y += 5;
+    y += 4;
     doc.setFontSize(8.3);
     doc.setTextColor(...GRIS_TEXTO);
     doc.setFont("helvetica", "bold");
-    doc.text(datos.banco.nombre, margen, y); y += 4.2;
+    doc.text(datos.banco.nombre, margen, y); y += 3.9;
     doc.setFont("helvetica", "normal");
-    doc.text(`Swift Code: ${datos.banco.swift}`, margen, y); y += 4.2;
-    doc.text(`Acct. N°: ${datos.banco.cuentaNumero}`, margen, y); y += 4.2;
+    doc.text(`Swift Code: ${datos.banco.swift}`, margen, y); y += 3.9;
+    doc.text(`Acct. N°: ${datos.banco.cuentaNumero}`, margen, y); y += 3.9;
     doc.text(`Acct. Name: ${datos.banco.cuentaTitular}`, margen, y);
-    y += 4;
+    y += 3;
 
     // -------- Banner de pie de página --------
     // Va a continuación de todo el contenido (no fijo al borde de la
@@ -216,11 +216,13 @@ const ReigerPdf = (function () {
   }
 
   // Banner institucional real (imagen provista), centrado, ubicado
-  // justo después del resto del contenido. Nunca genera una segunda
-  // página: si no queda espacio para el tamaño ideal (85% del ancho),
-  // se va achicando hasta un mínimo legible para entrar siempre en
-  // la misma hoja. Si ni el mínimo entra (cotización extremadamente
-  // larga), directamente no se dibuja, en vez de superponerse.
+  // justo después del resto del contenido. Ocupa el mismo ancho que
+  // el resto del contenido (de margen a margen, igual que la tabla
+  // de ítems). Nunca genera una segunda página: si no queda espacio
+  // vertical para ese ancho ideal, se va achicando hasta un mínimo
+  // legible para entrar siempre en la misma hoja. Si ni el mínimo
+  // entra (cotización extremadamente larga), directamente no se
+  // dibuja, en vez de superponerse.
   function dibujarBannerPie(doc, anchoPag, margen, y) {
     if (!window.REIGER_BANNER_BASE64) return;
     const altoPag = 297;
@@ -228,7 +230,7 @@ const ReigerPdf = (function () {
     const disponible = altoPag - margenInferior - y;
 
     const proporcion = 358 / 1400; // alto/ancho real de la imagen
-    const anchoIdeal = (anchoPag - margen * 2) * 0.85;
+    const anchoIdeal = anchoPag - margen * 2;
     const altoIdeal = anchoIdeal * proporcion;
     const altoMinimo = 9; // por debajo de esto ya no se lee bien
 
