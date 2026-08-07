@@ -229,7 +229,7 @@ const ReigerPdf = (function () {
     const margenInferior = 6;
     const disponible = altoPag - margenInferior - y;
 
-    const proporcion = 358 / 1400; // alto/ancho real de la imagen
+    const proporcion = 468 / 1400; // alto/ancho real de la imagen
     const anchoIdeal = anchoPag - margen * 2;
     const altoIdeal = anchoIdeal * proporcion;
     const altoMinimo = 9; // por debajo de esto ya no se lee bien
