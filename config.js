@@ -33,7 +33,7 @@ window.REIGER_CONFIG = {
 
   // Valores por defecto del panel de control
   defaults: {
-    envioUnitarioUSD: 1200,
+    envioUnitarioUSD: 0,
     ivaPct: 0.21,
     validez: "Una semana",
     incoterm: "EXW",
