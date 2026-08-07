@@ -109,8 +109,11 @@ const ReigerPdf = (function () {
     y = doc.lastAutoTable.finalY + 5;
 
     // -------- Totales --------
-    const anchoBloque = 80;
-    const xBloque = anchoPag - margen - anchoBloque;
+    // El bloque usa todo el ancho del contenido (igual que la tabla de
+    // ítems), no un recuadro angosto: así la etiqueta y el monto entran
+    // siempre en el mismo renglón, incluso con etiquetas largas como
+    // "PRECIO TOTAL (sin IVA ni aranceles):".
+    const xBloque = margen;
     const xDerecha = anchoPag - margen;
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "normal");
