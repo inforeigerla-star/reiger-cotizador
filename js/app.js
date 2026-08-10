@@ -101,7 +101,7 @@
       const data = await resp.json();
       if (typeof data.venta !== "number") throw new Error("Respuesta inesperada");
       $("fDolarVenta").value = data.venta;
-      recalcularTotales();
+      recalcularTodo();
       const hora = new Date(data.fechaActualizacion || Date.now())
         .toLocaleString("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
       if (estado) estado.textContent = `Oficial (DolarAPI) — actualizado ${hora}`;
@@ -138,7 +138,7 @@
     renderTablaDescuentos();
     actualizarVisibilidadDescuentos();
     renderItems();
-    recalcularTotales();
+    recalcularTodo();
 
     // Restaurar el Excel de la última vez, si hay uno guardado en este navegador
     const cache = leerExcelCache();
@@ -156,10 +156,32 @@
     $("fModalidad").addEventListener("change", () => {
       actualizarVisibilidadDescuentos();
       limitarItemsAlMaximo();
-      recalcularTotales();
+      recalcularTodo();
     });
     ["fCantidadSets", "fEnvioUnitario", "fIncluirEnvio", "fMoneda", "fDolarVenta", "fBasePago", "fCliente"]
-      .forEach(id => $(id).addEventListener("input", recalcularTotales));
+      .forEach(id => $(id).addEventListener("input", recalcularTodo));
+
+    // Comparador de modalidades (Escenario B): reutiliza el mismo cliente,
+    // ítems y set ya cargados en el panel principal; solo cambian modalidad,
+    // cantidad de sets y envío, que es lo que se quiere comparar.
+    $("fComparar").addEventListener("change", () => {
+      const activo = $("fComparar").checked;
+      $("bloqueComparacion").classList.toggle("oculto", !activo);
+      if (activo) {
+        $("fCantidadSetsB").value = $("fCantidadSets").value;
+        $("fEnvioUnitarioB").value = $("fEnvioUnitario").value;
+        $("fIncluirEnvioB").value = $("fIncluirEnvio").value;
+        $("fModalidadB").value = $("fModalidad").value === "Argentina" ? "Sudamérica" : "Argentina";
+      }
+      actualizarVisibilidadDescuentos();
+      recalcularTodo();
+    });
+    ["fModalidadB", "fCantidadSetsB", "fEnvioUnitarioB", "fIncluirEnvioB"].forEach(id =>
+      $(id).addEventListener("input", () => {
+        actualizarVisibilidadDescuentos();
+        recalcularTodo();
+      })
+    );
 
     $("btnAgregarItem").addEventListener("click", () => {
       if (items.length >= maxItemsActual()) return;
@@ -257,17 +279,17 @@
     if (data.dolarVenta) $("fDolarVenta").value = data.dolarVenta;
     if (typeof data.ivaPct === "number") CFG.defaults.ivaPct = data.ivaPct;
 
-    recalcularTotales();
+    recalcularTodo();
   }
 
   function onSetSeleccionado() {
     const nombreSet = $("fSet").value;
-    if (!excelData || !nombreSet) { recalcularTotales(); return; }
+    if (!excelData || !nombreSet) { recalcularTodo(); return; }
     // El campo ahora es de texto libre con autocompletado (datalist): mientras
     // el usuario todavía está escribiendo o filtrando, el valor no coincide
     // con ningún set real todavía — no tocamos los ítems hasta que elija uno
     // exacto, para no ir vaciando la tabla en cada letra que tipea.
-    if (!excelData.setOrder.includes(nombreSet)) { recalcularTotales(); return; }
+    if (!excelData.setOrder.includes(nombreSet)) { recalcularTodo(); return; }
 
     const componentes = excelData.componentesPorSet[nombreSet] || [];
     const max = maxItemsActual();
@@ -280,7 +302,7 @@
       cantidad: 1
     }));
     renderItems();
-    recalcularTotales();
+    recalcularTodo();
   }
 
   // ==========================================================
@@ -369,35 +391,44 @@
         const cant = Number(inp.dataset.cant);
         tablaDescuentos[cant] = (Number(inp.value) || 0) / 100;
         guardarTablaDescuentos();
-        recalcularTotales();
+        recalcularTodo();
       });
     });
   }
 
   function actualizarVisibilidadDescuentos() {
-    const esConDesc = $("fModalidad").value === "Sudamérica c/desc.";
+    const esConDesc = $("fModalidad").value === "Sudamérica c/desc." ||
+      ($("fComparar").checked && $("fModalidadB").value === "Sudamérica c/desc.");
     $("bloqueTablaDescuentos").classList.toggle("oculto", !esConDesc);
   }
 
   // ==========================================================
   // Cálculo y totales en vivo
   // ==========================================================
-  function obtenerInputCalculo() {
-    const modalidad = $("fModalidad").value;
+  // El sufijo permite reutilizar esta misma función para el escenario
+  // principal (sin sufijo) y para el escenario de comparación ("B"): los
+  // dos comparten cliente, ítems, set, moneda y T.C. — solo cambian
+  // modalidad, cantidad de sets y envío, que es justamente lo que se
+  // quiere poder comparar.
+  function obtenerInputCalculo(sufijo) {
+    sufijo = sufijo || "";
+    const modalidad = $("fModalidad" + sufijo).value;
     const nombreSet = $("fSet").value;
     const precioUnitarioUSD = excelData && nombreSet
       ? ReigerCalc.precioUnitarioSet(excelData.sets, nombreSet, modalidad)
       : null;
 
-    $("fPrecioUnitario").value = precioUnitarioUSD !== null ? precioUnitarioUSD.toFixed(2) : "—";
+    if (!sufijo) {
+      $("fPrecioUnitario").value = precioUnitarioUSD !== null ? precioUnitarioUSD.toFixed(2) : "—";
+    }
 
     return {
       modalidad,
-      cantidadSets: Number($("fCantidadSets").value) || 0,
+      cantidadSets: Number($("fCantidadSets" + sufijo).value) || 0,
       precioUnitarioUSD,
       tablaDescuentos,
-      envioUnitarioUSD: Number($("fEnvioUnitario").value) || 0,
-      incluirEnvio: $("fIncluirEnvio").value === "Sí",
+      envioUnitarioUSD: Number($("fEnvioUnitario" + sufijo).value) || 0,
+      incluirEnvio: $("fIncluirEnvio" + sufijo).value === "Sí",
       monedaSalida: $("fMoneda").value,
       dolarVenta: Number($("fDolarVenta").value) || 0,
       ivaPct: (excelData && typeof excelData.ivaPct === "number") ? excelData.ivaPct : CFG.defaults.ivaPct,
@@ -405,8 +436,9 @@
     };
   }
 
-  function recalcularTotales() {
-    const input = obtenerInputCalculo();
+  function recalcularTotales(sufijo) {
+    sufijo = sufijo || "";
+    const input = obtenerInputCalculo(sufijo);
     const c = ReigerCalc.calcular(input);
     const moneda = input.monedaSalida;
 
@@ -423,12 +455,22 @@
     if (!c.precioValido) {
       html += `<div class="aviso" style="margin-top:.6rem;">Elegí un archivo Excel y un set para calcular el precio.</div>`;
     }
-    $("bloqueTotales").innerHTML = html;
+    $("bloqueTotales" + sufijo).innerHTML = html;
 
-    $("btnGenerarPdf").disabled = !c.precioValido || !$("fCliente").value.trim();
+    if (!sufijo) {
+      $("btnGenerarPdf").disabled = !c.precioValido || !$("fCliente").value.trim();
+    }
   }
   function fila(label, valor) {
     return `<div class="fila"><span>${label}</span><span>${valor}</span></div>`;
+  }
+
+  // Recalcula el escenario principal y, si el comparador de modalidades
+  // está activo, también el escenario B — así no hay que acordarse de
+  // llamarlo dos veces en cada listener.
+  function recalcularTodo() {
+    recalcularTotales();
+    if ($("fComparar").checked) recalcularTotales("B");
   }
 
   // ==========================================================

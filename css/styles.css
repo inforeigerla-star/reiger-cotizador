@@ -262,6 +262,36 @@ table.descuentos input {
 }
 .totales .fila.pago { color: #555; font-size: .8rem; }
 
+/* ---------- Comparador de modalidades (Escenario B) ---------- */
+.comparar-toggle {
+  margin-top: .9rem;
+  padding-top: .7rem;
+  border-top: 1px dashed #e2d3e8;
+}
+.comparar-toggle label {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--violeta-oscuro);
+  cursor: pointer;
+}
+#bloqueComparacion { margin-top: .7rem; }
+#bloqueComparacion .grid-2 { grid-template-columns: 1fr 1fr; gap: .6rem .8rem; }
+#bloqueComparacion .campo label { font-size: .68rem; }
+#bloqueComparacion .campo input,
+#bloqueComparacion .campo select { padding: .4rem .5rem; font-size: .82rem; }
+.comparacion-titulo {
+  margin-top: 1rem;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  color: var(--violeta);
+}
+#bloqueTotalesB { margin-top: .3rem; }
+
 /* ---------- Botonera acciones ---------- */
 .acciones { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
 .btn {

@@ -101,6 +101,38 @@
       <section class="panel">
         <h2>Totales</h2>
         <div class="totales" id="bloqueTotales"></div>
+
+        <div class="comparar-toggle">
+          <label><input type="checkbox" id="fComparar"> Comparar con otra modalidad</label>
+        </div>
+        <div id="bloqueComparacion" class="oculto">
+          <div class="grid-2">
+            <div class="campo">
+              <label>Modalidad (B)</label>
+              <select id="fModalidadB">
+                <option>Argentina</option>
+                <option>Sudamérica</option>
+                <option>Sudamérica c/desc.</option>
+              </select>
+            </div>
+            <div class="campo">
+              <label>Cant. sets (B)</label>
+              <input id="fCantidadSetsB" type="number" min="1" value="1">
+            </div>
+            <div class="campo">
+              <label>Envío unitario (B)</label>
+              <input id="fEnvioUnitarioB" type="number" min="0">
+            </div>
+            <div class="campo">
+              <label>Incluir envío (B)</label>
+              <select id="fIncluirEnvioB">
+                <option>Sí</option><option>No</option>
+              </select>
+            </div>
+          </div>
+          <div class="comparacion-titulo">Totales — Escenario B</div>
+          <div class="totales" id="bloqueTotalesB"></div>
+        </div>
       </section>
 
       <section class="panel panel-control">
