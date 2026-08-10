@@ -28,7 +28,7 @@ window.REIGER_CONFIG = {
   // Notas legales que aparecen al pie del PDF
   notas: [
     "* No asumimos responsabilidad por multas adicionales, retenciones que excedan los plazos estimados o impuestos que no hayan sido previstos.",
-    "* El precio del envío se encuentra incluido dentro del precio final, tener en cuenta que es un aproximado y puede variar."
+    "* El precio del envío es un aproximado y puede variar."
   ],
 
   // Valores por defecto del panel de control
