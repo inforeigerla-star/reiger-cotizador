@@ -23,10 +23,23 @@
 
 const ReigerCalc = (function () {
 
+  // "Argentina" y "Argentina c/desc." son ambas ventas domésticas: precio
+  // en pesos de lista argentina, con IVA y sin envío (a diferencia de las
+  // modalidades de exportación, que no llevan IVA y sí envío).
+  function esVentaArgentina(modalidad) {
+    return modalidad === "Argentina" || modalidad === "Argentina c/desc.";
+  }
+
+  // "Sudamérica c/desc." y "Argentina c/desc." aplican la misma tabla de
+  // descuento por cantidad de sets (editable desde el panel de control).
+  function tieneDescuentoPorCantidad(modalidad) {
+    return modalidad === "Sudamérica c/desc." || modalidad === "Argentina c/desc.";
+  }
+
   function precioUnitarioSet(datosSets, nombreSet, modalidad) {
     const info = datosSets[nombreSet];
     if (!info) return null;
-    const valor = modalidad === "Argentina" ? info.argentina : info.exterior;
+    const valor = esVentaArgentina(modalidad) ? info.argentina : info.exterior;
     return (valor === null || valor === undefined || !isFinite(valor)) ? null : valor;
   }
 
@@ -37,7 +50,7 @@ const ReigerCalc = (function () {
 
   function calcular(input) {
     const {
-      modalidad,            // "Argentina" | "Sudamérica" | "Sudamérica c/desc."
+      modalidad,            // "Argentina" | "Argentina c/desc." | "Sudamérica" | "Sudamérica c/desc."
       cantidadSets,         // int
       precioUnitarioUSD,    // number | null
       tablaDescuentos,      // {1:0, 2:0.02, ...}
@@ -53,21 +66,21 @@ const ReigerCalc = (function () {
     const cant = Math.max(0, Number(cantidadSets) || 0);
 
     const descuentoAplicado = descuentoPorCantidad(tablaDescuentos, cant);
-    const descuentoSegunModalidad = modalidad === "Sudamérica c/desc." ? descuentoAplicado : 0;
+    const descuentoSegunModalidad = tieneDescuentoPorCantidad(modalidad) ? descuentoAplicado : 0;
 
     const precioBaseUSD = precioValido ? precioUnitarioUSD : 0;
     const subtotalSetsUSD = precioBaseUSD * cant * (1 - descuentoSegunModalidad);
 
-    const envioTotalUSD = modalidad === "Argentina"
+    const envioTotalUSD = esVentaArgentina(modalidad)
       ? 0
       : (incluirEnvio ? envioUnitarioUSD * cant : 0);
 
-    const ivaUSD = modalidad === "Argentina" ? subtotalSetsUSD * ivaPct : 0;
+    const ivaUSD = esVentaArgentina(modalidad) ? subtotalSetsUSD * ivaPct : 0;
 
     const factorMoneda = monedaSalida === "ARS" ? (Number(dolarVenta) || 1) : 1;
 
     const totalSetsConvertido = subtotalSetsUSD * factorMoneda;
-    const segundaLineaUSD = modalidad === "Argentina" ? ivaUSD : envioTotalUSD;
+    const segundaLineaUSD = esVentaArgentina(modalidad) ? ivaUSD : envioTotalUSD;
     const segundaLineaConvertida = segundaLineaUSD * factorMoneda;
     const totalFinal = totalSetsConvertido + segundaLineaConvertida;
 
@@ -82,7 +95,7 @@ const ReigerCalc = (function () {
 
     // Etiqueta de la segunda línea, igual que B32 en el Excel
     let etiquetaSegundaLinea;
-    if (modalidad === "Argentina") {
+    if (esVentaArgentina(modalidad)) {
       etiquetaSegundaLinea = `IVA (${(ivaPct * 100).toFixed(0)}%):`;
     } else if (incluirEnvio) {
       etiquetaSegundaLinea = "Envío estimado:";
@@ -90,11 +103,11 @@ const ReigerCalc = (function () {
       etiquetaSegundaLinea = "Cotización sin envío:";
     }
 
-    let etiquetaPrimeraLinea = modalidad === "Argentina"
+    let etiquetaPrimeraLinea = esVentaArgentina(modalidad)
       ? "PRECIO TOTAL (sin IVA ni aranceles):"
       : "PRECIO TOTAL Sets (sin envío):";
 
-    let etiquetaTotalFinal = modalidad === "Argentina"
+    let etiquetaTotalFinal = esVentaArgentina(modalidad)
       ? "PRECIO TOTAL (con IVA):"
       : "PRECIO TOTAL:";
 
@@ -126,5 +139,5 @@ const ReigerCalc = (function () {
     return `${moneda} ${s}`;
   }
 
-  return { precioUnitarioSet, descuentoPorCantidad, calcular, formatoMoneda };
+  return { precioUnitarioSet, descuentoPorCantidad, calcular, formatoMoneda, esVentaArgentina, tieneDescuentoPorCantidad };
 })();

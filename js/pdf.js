@@ -142,9 +142,9 @@ const ReigerPdf = (function () {
       return yPos + 11;
     }
 
-    // En "Sudamérica c/desc." se muestra el precio unitario con y sin
+    // En las modalidades "c/desc." se muestra el precio unitario con y sin
     // descuento antes del total, para que quede clara la rebaja aplicada.
-    if (datos.modalidad === "Sudamérica c/desc.") {
+    if (ReigerCalc.tieneDescuentoPorCantidad(datos.modalidad)) {
       const pct = Math.round((datos.calculo.descuentoAplicado || 0) * 100);
       y = lineaTotal("Precio unitario (sin descuento):", ReigerCalc.formatoMoneda(datos.calculo.precioUnitarioConvertido, datos.moneda), y, false, 9.5);
       y = lineaTotal(`Precio unitario (con descuento ${pct}%):`, ReigerCalc.formatoMoneda(datos.calculo.precioUnitarioConDescuento, datos.moneda), y, false, 9.5);

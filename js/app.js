@@ -397,8 +397,8 @@
   }
 
   function actualizarVisibilidadDescuentos() {
-    const esConDesc = $("fModalidad").value === "Sudamérica c/desc." ||
-      ($("fComparar").checked && $("fModalidadB").value === "Sudamérica c/desc.");
+    const esConDesc = ReigerCalc.tieneDescuentoPorCantidad($("fModalidad").value) ||
+      ($("fComparar").checked && ReigerCalc.tieneDescuentoPorCantidad($("fModalidadB").value));
     $("bloqueTablaDescuentos").classList.toggle("oculto", !esConDesc);
   }
 
@@ -443,7 +443,7 @@
     const moneda = input.monedaSalida;
 
     let html = "";
-    if (input.modalidad === "Sudamérica c/desc." && c.precioValido) {
+    if (ReigerCalc.tieneDescuentoPorCantidad(input.modalidad) && c.precioValido) {
       html += fila("Precio unitario (sin descuento)", ReigerCalc.formatoMoneda(c.precioUnitarioConvertido, moneda));
       html += fila(`Precio unitario (con descuento ${Math.round(c.descuentoAplicado * 100)}%)`, ReigerCalc.formatoMoneda(c.precioUnitarioConDescuento, moneda));
     }
