@@ -253,5 +253,136 @@ const ReigerPdf = (function () {
     return `COT-${String(numero).padStart(4, "0")} - ${limpiar(cliente)} - ${limpiar(set)}.pdf`.slice(0, 150);
   }
 
-  return { generar, nombreArchivo };
+  // -------- Estado de cuenta (por cotización confirmada) --------
+  // PDF simple para pasarle al cliente: total cotizado, pagos recibidos
+  // hasta el momento y saldo pendiente, con los datos bancarios para
+  // saldarlo si todavía queda algo por cobrar.
+  function generarEstadoCuenta(datos) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const anchoPag = 210, margen = 14;
+    const cuenta = datos.cuenta;
+    let y = 0;
+
+    const logoAncho = 40, logoAlto = logoAncho * (507 / 630);
+    if (window.REIGER_LOGO_BASE64) {
+      try {
+        doc.addImage(window.REIGER_LOGO_BASE64, "JPEG", anchoPag - margen - logoAncho, 6, logoAncho, logoAlto);
+      } catch (e) { /* si falla la imagen, seguimos sin logo */ }
+    }
+
+    doc.setTextColor(...VIOLETA);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("ESTADO DE CUENTA", margen, 17);
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...GRIS_TEXTO);
+    doc.text(datos.contacto.email, margen, 26);
+    doc.text(datos.contacto.telefono, margen, 32);
+
+    y = Math.max(6 + logoAlto, 34) + 4;
+    doc.setDrawColor(...VIOLETA);
+    doc.setLineWidth(0.6);
+    doc.line(margen, y, anchoPag - margen, y);
+    y += 6;
+
+    // -------- Referencia de la cotización --------
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "bold"); doc.text("Cliente:", margen, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(cuenta.cliente || "-"), margen + 22, y);
+    doc.setFont("helvetica", "bold"); doc.text("Cotización N°:", 120, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(cuenta.numero), 120 + 32, y);
+    y += 5.5;
+    doc.setFont("helvetica", "bold"); doc.text("Set:", margen, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(cuenta.set || "-"), margen + 22, y);
+    doc.setFont("helvetica", "bold"); doc.text("Fecha cotización:", 120, y);
+    doc.setFont("helvetica", "normal"); doc.text(String(cuenta.fechaCotizacion || "-"), 120 + 32, y);
+    y += 9;
+
+    // -------- Resumen --------
+    doc.setFillColor(...LAVANDA);
+    doc.rect(margen, y, anchoPag - margen * 2, 6, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...VIOLETA_OSC);
+    doc.text("RESUMEN", margen + 2, y + 4.3);
+    doc.setTextColor(...GRIS_TEXTO);
+    y += 10;
+
+    const xIzq = margen, xDer = anchoPag - margen;
+    function lineaResumen(label, valor, negrita, tamano) {
+      doc.setFont("helvetica", negrita ? "bold" : "normal");
+      doc.setFontSize(tamano || 10);
+      doc.text(label, xIzq, y);
+      doc.text(valor, xDer, y, { align: "right" });
+      y += negrita ? 7 : 6;
+    }
+    lineaResumen("Total cotizado:", ReigerCalc.formatoMoneda(cuenta.total, cuenta.moneda), false, 10);
+    lineaResumen("Total pagado:", ReigerCalc.formatoMoneda(datos.totalPagado, cuenta.moneda), false, 10);
+    doc.setDrawColor(...VIOLETA);
+    doc.setLineWidth(0.4);
+    doc.line(xIzq, y, xDer, y);
+    y += 5;
+    doc.setTextColor(...VIOLETA_OSC);
+    lineaResumen("Saldo pendiente:", ReigerCalc.formatoMoneda(datos.saldoPendiente, cuenta.moneda), true, 12);
+    doc.setTextColor(...GRIS_TEXTO);
+    y += 4;
+
+    // -------- Detalle de pagos --------
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...VIOLETA_OSC);
+    doc.text("DETALLE DE PAGOS", margen, y);
+    doc.setTextColor(...GRIS_TEXTO);
+    y += 4;
+
+    const body = (cuenta.pagos || []).map(p => [
+      p.fecha || "-",
+      p.medio || "-",
+      p.nota || "-",
+      ReigerCalc.formatoMoneda(Number(p.monto) || 0, cuenta.moneda)
+    ]);
+    doc.autoTable({
+      startY: y,
+      margin: { left: margen, right: margen },
+      head: [["Fecha", "Medio", "Nota", "Monto"]],
+      body: body.length ? body : [["-", "-", "Sin pagos registrados todavía", "-"]],
+      theme: "plain",
+      styles: { fontSize: 9, cellPadding: 1.6, textColor: GRIS_TEXTO, lineColor: [230, 220, 235], lineWidth: 0.1 },
+      headStyles: { fillColor: NAVY, textColor: 255, fontStyle: "bold", fontSize: 8.5 },
+      bodyStyles: { fillColor: CREMA },
+      columnStyles: { 3: { halign: "right" } }
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    // -------- Datos bancarios, solo si todavía queda saldo por cobrar --------
+    if (datos.saldoPendiente > 0.01 && datos.banco) {
+      doc.setDrawColor(220, 210, 225);
+      doc.setLineWidth(0.2);
+      doc.line(margen, y, anchoPag - margen, y);
+      y += 4;
+      doc.setFontSize(8.3);
+      doc.setTextColor(...GRIS_TEXTO);
+      doc.setFont("helvetica", "bold");
+      doc.text("Datos para transferir el saldo pendiente:", margen, y); y += 4.5;
+      doc.text(datos.banco.nombre, margen, y); y += 3.9;
+      doc.setFont("helvetica", "normal");
+      doc.text(`Swift Code: ${datos.banco.swift}`, margen, y); y += 3.9;
+      doc.text(`Acct. N°: ${datos.banco.cuentaNumero}`, margen, y); y += 3.9;
+      doc.text(`Acct. Name: ${datos.banco.cuentaTitular}`, margen, y);
+      y += 5;
+    }
+
+    dibujarBannerPie(doc, anchoPag, margen, y);
+
+    return doc;
+  }
+
+  function nombreArchivoCuenta(numero, cliente) {
+    const limpiar = s => String(s || "").replace(/[\\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim();
+    return `Estado de cuenta - COT-${String(numero).padStart(4, "0")} - ${limpiar(cliente)}.pdf`.slice(0, 150);
+  }
+
+  return { generar, nombreArchivo, generarEstadoCuenta, nombreArchivoCuenta };
 })();

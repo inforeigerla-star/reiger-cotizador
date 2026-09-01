@@ -46,6 +46,18 @@ const ReigerHistorial = (function () {
     return registro;
   }
 
+  // Actualiza campos puntuales de un registro ya existente (por ejemplo,
+  // el estado al confirmar una cotización). No toca los campos que no
+  // se le pasen en "cambios".
+  function actualizarRegistro(numero, cambios) {
+    const lista = _leer();
+    const idx = lista.findIndex(r => r.numero === numero);
+    if (idx === -1) return null;
+    lista[idx] = Object.assign({}, lista[idx], cambios);
+    _guardar(lista);
+    return lista[idx];
+  }
+
   // Borra un registro puntual. El contador de numeración NO se toca,
   // así un número borrado nunca se reutiliza para otra cotización.
   function eliminarRegistro(numero) {
@@ -118,5 +130,5 @@ const ReigerHistorial = (function () {
     });
   }
 
-  return { obtenerTodos, siguienteNumero, agregarRegistro, eliminarRegistro, vaciarTodo, exportarXlsx, importarXlsx };
+  return { obtenerTodos, siguienteNumero, agregarRegistro, actualizarRegistro, eliminarRegistro, vaciarTodo, exportarXlsx, importarXlsx };
 })();

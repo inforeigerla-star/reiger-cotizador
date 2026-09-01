@@ -233,6 +233,41 @@
   </div>
 </div>
 
+<!-- ===================== MODAL ESTADO DE CUENTA ===================== -->
+<div id="modalCuenta" class="modal-fondo oculto">
+  <div class="modal-caja">
+    <button class="modal-cerrar" id="btnCerrarCuenta">×</button>
+    <h2>Estado de cuenta</h2>
+
+    <div class="totales" id="cuentaResumen"></div>
+
+    <h3 style="font-size:.85rem; color:var(--violeta); margin:1.2rem 0 .5rem;">Pagos registrados</h3>
+    <div class="historial-wrap" style="max-height:220px;">
+      <table class="historial-tabla">
+        <thead>
+          <tr><th>Fecha</th><th>Medio</th><th>Nota</th><th>Monto</th><th></th></tr>
+        </thead>
+        <tbody id="tbodyPagos"></tbody>
+      </table>
+    </div>
+
+    <div class="grid-2" style="margin-top:1rem;">
+      <div class="campo"><label>Fecha del pago</label><input type="date" id="fPagoFecha"></div>
+      <div class="campo"><label>Monto</label><input type="number" id="fPagoMonto" min="0" step="0.01"></div>
+      <div class="campo">
+        <label>Medio</label>
+        <select id="fPagoMedio"><option>Transferencia</option><option>Efectivo</option><option>Otro</option></select>
+      </div>
+      <div class="campo"><label>Nota (opcional)</label><input type="text" id="fPagoNota" placeholder="Ej: seña, cuota 1…"></div>
+    </div>
+
+    <div class="acciones">
+      <button class="btn btn-primario" id="btnAgregarPago">+ Agregar pago</button>
+      <button class="btn btn-secundario" id="btnExportarCuentaPdf">Exportar estado de cuenta (PDF)</button>
+    </div>
+  </div>
+</div>
+
 <datalist id="datalistCodigos"></datalist>
 <datalist id="datalistSets"></datalist>
 
@@ -247,6 +282,7 @@
 <script src="js/xlsxdata.js"></script>
 <script src="js/calc.js"></script>
 <script src="js/historial.js"></script>
+<script src="js/cuentas.js"></script>
 <script src="js/pdf.js"></script>
 <script src="js/app.js"></script>
 </body>

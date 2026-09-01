@@ -12,6 +12,7 @@
   let excelData = null;         // resultado de ReigerXlsx.cargarArchivo
   let items = [];               // [{codigo, descripcion, cantidad}]
   let tablaDescuentos = cargarTablaDescuentos();
+  let cuentaAbiertaNumero = null; // N° de cotización cuyo estado de cuenta está abierto en el modal
 
   // ---------------- Utilidades ----------------
   const $ = (id) => document.getElementById(id);
@@ -196,6 +197,32 @@
       $("modalHistorial").classList.remove("oculto");
     });
     $("btnCerrarHistorial").addEventListener("click", () => $("modalHistorial").classList.add("oculto"));
+    $("btnCerrarCuenta").addEventListener("click", () => $("modalCuenta").classList.add("oculto"));
+    $("btnAgregarPago").addEventListener("click", () => {
+      const monto = Number($("fPagoMonto").value) || 0;
+      if (monto <= 0) { alert("Ingresá un monto de pago mayor a 0."); return; }
+      if (!$("fPagoFecha").value) { alert("Elegí la fecha del pago."); return; }
+      ReigerCuentas.agregarPago(cuentaAbiertaNumero, {
+        fecha: $("fPagoFecha").value,
+        monto,
+        medio: $("fPagoMedio").value,
+        nota: $("fPagoNota").value.trim()
+      });
+      $("fPagoMonto").value = "";
+      $("fPagoNota").value = "";
+      renderCuenta();
+    });
+    $("btnExportarCuentaPdf").addEventListener("click", () => {
+      const cuenta = ReigerCuentas.obtener(cuentaAbiertaNumero);
+      if (!cuenta) return;
+      const { totalPagado, saldoPendiente } = ReigerCuentas.calcularSaldo(cuenta);
+      const doc = ReigerPdf.generarEstadoCuenta({
+        cuenta, totalPagado, saldoPendiente,
+        contacto: CFG.contacto,
+        banco: CFG.banco
+      });
+      doc.save(ReigerPdf.nombreArchivoCuenta(cuenta.numero, cuenta.cliente));
+    });
     $("btnExportarHistorial").addEventListener("click", () => ReigerHistorial.exportarXlsx());
     $("btnImportarHistorialBtn").addEventListener("click", () => $("inputImportarHistorial").click());
     $("btnVaciarHistorial").addEventListener("click", () => {
@@ -538,7 +565,12 @@
   function renderHistorial() {
     const tbody = $("tbodyHistorial");
     const lista = ReigerHistorial.obtenerTodos();
-    tbody.innerHTML = lista.map(r => `
+    tbody.innerHTML = lista.map(r => {
+      const confirmada = r.estado === "CONFIRMADA";
+      const botonCuenta = confirmada
+        ? `<button type="button" class="ver-cuenta" data-numero="${r.numero}" title="Ver estado de cuenta">💰</button>`
+        : `<button type="button" class="confirmar" data-numero="${r.numero}" title="Confirmar cotización y abrir su estado de cuenta">✔</button>`;
+      return `
       <tr>
         <td><span class="badge">${r.numero}</span></td>
         <td>${r.fecha || ""}</td>
@@ -549,9 +581,10 @@
         <td>${(r.total ?? 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</td>
         <td>${r.moneda || ""}</td>
         <td>${r.estado || ""}</td>
-        <td><button type="button" class="eliminar" data-numero="${r.numero}" title="Eliminar esta cotización del historial">✕</button></td>
+        <td>${botonCuenta} <button type="button" class="eliminar" data-numero="${r.numero}" title="Eliminar esta cotización del historial">✕</button></td>
       </tr>
-    `).join("") || `<tr><td colspan="10" style="text-align:center; color:#999; padding:1.5rem;">Todavía no generaste ninguna cotización.</td></tr>`;
+    `;
+    }).join("") || `<tr><td colspan="10" style="text-align:center; color:#999; padding:1.5rem;">Todavía no generaste ninguna cotización.</td></tr>`;
 
     tbody.querySelectorAll("button.eliminar").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -559,6 +592,66 @@
         if (!confirm(`¿Eliminar la cotización N° ${numero} del historial? Esto no borra el PDF ya descargado, solo el registro.`)) return;
         ReigerHistorial.eliminarRegistro(numero);
         renderHistorial();
+      });
+    });
+
+    tbody.querySelectorAll("button.confirmar").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const numero = Number(btn.dataset.numero);
+        const registro = ReigerHistorial.obtenerTodos().find(r => r.numero === numero);
+        if (!registro) return;
+        ReigerHistorial.actualizarRegistro(numero, { estado: "CONFIRMADA" });
+        ReigerCuentas.confirmar(registro);
+        renderHistorial();
+        abrirCuenta(numero);
+      });
+    });
+    tbody.querySelectorAll("button.ver-cuenta").forEach(btn => {
+      btn.addEventListener("click", () => abrirCuenta(Number(btn.dataset.numero)));
+    });
+  }
+
+  // ==========================================================
+  // Estado de cuenta (por cotización confirmada)
+  // ==========================================================
+  function abrirCuenta(numero) {
+    cuentaAbiertaNumero = numero;
+    $("fPagoFecha").valueAsDate = new Date();
+    $("fPagoMonto").value = "";
+    $("fPagoMedio").value = "Transferencia";
+    $("fPagoNota").value = "";
+    renderCuenta();
+    $("modalCuenta").classList.remove("oculto");
+  }
+
+  function renderCuenta() {
+    const cuenta = ReigerCuentas.obtener(cuentaAbiertaNumero);
+    if (!cuenta) return;
+    const { totalPagado, saldoPendiente } = ReigerCuentas.calcularSaldo(cuenta);
+
+    let html = "";
+    html += fila("Cliente", cuenta.cliente || "-");
+    html += fila("Cotización N°", String(cuenta.numero));
+    html += fila("Total cotizado", ReigerCalc.formatoMoneda(cuenta.total, cuenta.moneda));
+    html += fila("Total pagado", ReigerCalc.formatoMoneda(totalPagado, cuenta.moneda));
+    html += `<div class="fila final"><span>Saldo pendiente</span><span>${ReigerCalc.formatoMoneda(saldoPendiente, cuenta.moneda)}</span></div>`;
+    $("cuentaResumen").innerHTML = html;
+
+    const tbody = $("tbodyPagos");
+    tbody.innerHTML = (cuenta.pagos || []).map((p, idx) => `
+      <tr>
+        <td>${p.fecha || ""}</td>
+        <td>${p.medio || ""}</td>
+        <td>${p.nota || ""}</td>
+        <td>${ReigerCalc.formatoMoneda(Number(p.monto) || 0, cuenta.moneda)}</td>
+        <td><button type="button" class="quitar-pago" data-idx="${idx}" title="Quitar este pago">✕</button></td>
+      </tr>
+    `).join("") || `<tr><td colspan="5" style="text-align:center; color:#999; padding:1rem;">Todavía no se cargó ningún pago.</td></tr>`;
+
+    tbody.querySelectorAll("button.quitar-pago").forEach(btn => {
+      btn.addEventListener("click", () => {
+        ReigerCuentas.eliminarPago(cuentaAbiertaNumero, Number(btn.dataset.idx));
+        renderCuenta();
       });
     });
   }
