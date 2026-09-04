@@ -13,6 +13,7 @@
   let items = [];               // [{codigo, descripcion, cantidad}]
   let tablaDescuentos = cargarTablaDescuentos();
   let cuentaAbiertaNumero = null; // N° de cotización cuyo estado de cuenta está abierto en el modal
+  let edicionRevisionDe = null;   // N° de la cotización que se está "editando" (se genera una revisión nueva, no se pisa la original)
 
   // ---------------- Utilidades ----------------
   const $ = (id) => document.getElementById(id);
@@ -213,6 +214,10 @@
       $("modalHistorial").classList.remove("oculto");
     });
     $("btnCerrarHistorial").addEventListener("click", () => $("modalHistorial").classList.add("oculto"));
+    $("btnCancelarEdicion").addEventListener("click", () => {
+      edicionRevisionDe = null;
+      actualizarAvisoEdicion();
+    });
     $("btnCerrarCuenta").addEventListener("click", () => $("modalCuenta").classList.add("oculto"));
     $("btnAgregarPago").addEventListener("click", () => {
       const monto = Number($("fPagoMonto").value) || 0;
@@ -558,6 +563,29 @@
     const nombreArchivo = ReigerPdf.nombreArchivo(numero, cliente, nombreSet);
     doc.save(nombreArchivo);
 
+    // Snapshot completo del formulario, para poder "editar" esta cotización
+    // más adelante (recargarla y generar una revisión con número nuevo).
+    // No guarda el T.C. ni la tabla de descuentos: al editar se usan los
+    // valores vigentes en ese momento, no los de cuando se cotizó.
+    const snapshot = {
+      cliente,
+      direccion: $("fDireccion").value.trim(),
+      ciudad: $("fCiudad").value.trim(),
+      pais: $("fPais").value,
+      condPago: $("fCondPago").value,
+      fecha: $("fFecha").value,
+      validez: $("fValidez").value,
+      incoterm: $("fIncoterm").value,
+      set: nombreSet,
+      modalidad: input.modalidad,
+      cantidadSets: input.cantidadSets,
+      envioUnitarioUSD: input.envioUnitarioUSD,
+      incluirEnvio: input.incluirEnvio,
+      monedaSalida: input.monedaSalida,
+      basePago: input.baseParaPlanDePago,
+      items: datosPdf.items.map(it => Object.assign({}, it))
+    };
+
     const registro = {
       numero,
       fecha: $("fFecha").value,
@@ -567,12 +595,19 @@
       set: nombreSet,
       total: Number(calculo.totalFinal.toFixed(2)),
       moneda,
-      estado: "GENERADA"
+      estado: "GENERADA",
+      snapshot
     };
+    if (edicionRevisionDe) registro.revisionDe = edicionRevisionDe;
     ReigerHistorial.agregarRegistro(registro);
     $("fNConsulta").value = ReigerHistorial.siguienteNumero();
 
-    alert(`Cotización N° ${numero} generada y descargada como:\n${nombreArchivo}`);
+    const eraRevision = edicionRevisionDe;
+    edicionRevisionDe = null;
+    actualizarAvisoEdicion();
+
+    alert(`Cotización N° ${numero} generada y descargada como:\n${nombreArchivo}` +
+      (eraRevision ? `\n\n(Revisión de la cotización N° ${eraRevision}, que queda intacta en el historial.)` : ""));
   }
 
   // ==========================================================
@@ -586,9 +621,18 @@
       const botonCuenta = confirmada
         ? `<button type="button" class="ver-cuenta" data-numero="${r.numero}" title="Ver estado de cuenta">💰</button>`
         : `<button type="button" class="confirmar" data-numero="${r.numero}" title="Confirmar cotización y abrir su estado de cuenta">✔</button>`;
+      // Editar solo está disponible si NO está confirmada: una vez
+      // confirmada ya puede tener pagos cargados en su estado de cuenta,
+      // y cambiarle el total/ítems la desincronizaría.
+      const botonEditar = confirmada
+        ? ""
+        : `<button type="button" class="editar-cot" data-numero="${r.numero}" title="Editar (genera una cotización nueva como revisión, esta queda igual)">✎</button>`;
+      const tagRevision = r.revisionDe
+        ? `<div style="font-size:.65rem; color:#999; margin-top:2px;">rev. de ${r.revisionDe}</div>`
+        : "";
       return `
       <tr>
-        <td><span class="badge">${r.numero}</span></td>
+        <td><span class="badge">${r.numero}</span>${tagRevision}</td>
         <td>${r.fecha || ""}</td>
         <td>${r.cliente || ""}</td>
         <td>${r.pais || ""}</td>
@@ -597,7 +641,7 @@
         <td>${(r.total ?? 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</td>
         <td>${r.moneda || ""}</td>
         <td>${r.estado || ""}</td>
-        <td>${botonCuenta} <button type="button" class="eliminar" data-numero="${r.numero}" title="Eliminar esta cotización del historial">✕</button></td>
+        <td>${botonEditar} ${botonCuenta} <button type="button" class="eliminar" data-numero="${r.numero}" title="Eliminar esta cotización del historial">✕</button></td>
       </tr>
     `;
     }).join("") || `<tr><td colspan="10" style="text-align:center; color:#999; padding:1.5rem;">Todavía no generaste ninguna cotización.</td></tr>`;
@@ -625,6 +669,69 @@
     tbody.querySelectorAll("button.ver-cuenta").forEach(btn => {
       btn.addEventListener("click", () => abrirCuenta(Number(btn.dataset.numero)));
     });
+    tbody.querySelectorAll("button.editar-cot").forEach(btn => {
+      btn.addEventListener("click", () => cargarParaEditar(Number(btn.dataset.numero)));
+    });
+  }
+
+  // ==========================================================
+  // Editar una cotización ya generada (carga sus datos en el
+  // formulario principal; al generar el PDF se crea una cotización
+  // NUEVA como revisión — la original queda intacta en el historial).
+  // ==========================================================
+  function cargarParaEditar(numero) {
+    const registro = ReigerHistorial.obtenerTodos().find(r => r.numero === numero);
+    if (!registro) return;
+
+    if (registro.estado === "CONFIRMADA") {
+      alert("Esta cotización ya está confirmada y tiene un estado de cuenta asociado, así que no se puede editar (podría desincronizar los pagos ya cargados). Si necesitás mandarle otra versión al cliente, armá una cotización nueva desde cero.");
+      return;
+    }
+    const snap = registro.snapshot;
+    if (!snap) {
+      alert("Esta cotización se generó antes de que existiera la edición y no tiene guardados todos sus datos, así que no se puede recargar en el formulario. Las que generes de ahora en más sí van a poder editarse.");
+      return;
+    }
+
+    $("modalHistorial").classList.add("oculto");
+
+    $("fCliente").value = snap.cliente || "";
+    $("fDireccion").value = snap.direccion || "";
+    $("fCiudad").value = snap.ciudad || "";
+    $("fFecha").value = snap.fecha || "";
+    $("fValidez").value = snap.validez || "";
+    $("fIncoterm").value = snap.incoterm || "EXW";
+    $("fCondPago").value = snap.condPago || "Transferencia";
+    $("fModalidad").value = snap.modalidad || "Argentina";
+    renderOpcionesPais();
+    if (snap.pais) $("fPais").value = snap.pais;
+    $("fSet").value = snap.set || "";
+    $("fCantidadSets").value = snap.cantidadSets || 1;
+    $("fEnvioUnitario").value = snap.envioUnitarioUSD ?? CFG.defaults.envioUnitarioUSD;
+    $("fIncluirEnvio").value = snap.incluirEnvio ? "Sí" : "No";
+    $("fMoneda").value = snap.monedaSalida || "USD";
+    $("fBasePago").value = snap.basePago || CFG.defaults.baseParaPlanDePago;
+
+    items = (snap.items || []).map(it => Object.assign({}, it));
+
+    edicionRevisionDe = numero;
+    actualizarAvisoEdicion();
+    actualizarVisibilidadDescuentos();
+    limitarItemsAlMaximo(); // recorta al máximo de la modalidad cargada y renderiza los ítems
+    recalcularTodo();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function actualizarAvisoEdicion() {
+    const aviso = $("avisoEdicion");
+    if (edicionRevisionDe) {
+      $("avisoEdicionTexto").textContent =
+        `Editando una revisión de la cotización N° ${edicionRevisionDe}. Al generar el PDF se crea una cotización nueva con su propio número — la original no se modifica.`;
+      aviso.classList.remove("oculto");
+    } else {
+      aviso.classList.add("oculto");
+    }
   }
 
   // ==========================================================

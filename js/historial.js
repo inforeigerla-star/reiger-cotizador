@@ -104,7 +104,12 @@ const ReigerHistorial = (function () {
           filas.forEach(f => {
             const numero = Number(f["N° CONSULTA"]);
             if (!numero) return;
-            porNumero[numero] = {
+            // Se mezcla sobre lo que ya hubiera para ese número (spread de
+            // porNumero[numero]) en vez de reemplazarlo entero: así, si el
+            // registro local tenía "snapshot" (para poder editarlo después)
+            // o "revisionDe", el Excel importado —que no conoce esos
+            // campos— no los borra.
+            porNumero[numero] = Object.assign({}, porNumero[numero], {
               numero,
               fecha: f["FECHA"] || "",
               cliente: f["CLIENTE"] || "",
@@ -114,7 +119,7 @@ const ReigerHistorial = (function () {
               total: Number(f["TOTAL"]) || 0,
               moneda: f["MONEDA"] || "",
               estado: f["ESTADO"] || "GENERADA"
-            };
+            });
           });
           const fusionado = Object.values(porNumero);
           _guardar(fusionado);
