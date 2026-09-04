@@ -32,6 +32,26 @@
     return $("fModalidad").value === "Sudamérica c/desc." ? CFG.maxItems.conDescuento : CFG.maxItems.normal;
   }
 
+  // El campo País muestra la lista completa para las modalidades
+  // "Argentina" / "Argentina c/desc.", y solo países sudamericanos +
+  // Miami para "Sudamérica" / "Sudamérica c/desc.". Si el País ya
+  // elegido no existe en la lista nueva, se cae al primero de la lista.
+  function renderOpcionesPais() {
+    const fPais = $("fPais");
+    const anterior = fPais.value;
+    const modalidad = $("fModalidad").value;
+    const esSudamerica = modalidad === "Sudamérica" || modalidad === "Sudamérica c/desc.";
+    const lista = esSudamerica ? CFG.paisesSudamerica : CFG.paises;
+
+    fPais.innerHTML = "";
+    lista.forEach(p => {
+      const op = document.createElement("option");
+      op.value = p; op.textContent = p;
+      fPais.appendChild(op);
+    });
+    fPais.value = lista.includes(anterior) ? anterior : lista[0];
+  }
+
   // ---------------- Cache del Excel cargado ----------------
   // Guarda los datos YA PARSEADOS (no el archivo original) en este
   // navegador, para no tener que volver a seleccionar el Excel cada
@@ -118,13 +138,8 @@
   function initApp() {
     $("contactoHeader").textContent = `${CFG.contacto.email}  ·  ${CFG.contacto.telefono}`;
 
-    // País
-    const fPais = $("fPais");
-    CFG.paises.forEach(p => {
-      const op = document.createElement("option");
-      op.value = p; op.textContent = p;
-      fPais.appendChild(op);
-    });
+    // País (la lista depende de la modalidad, ver renderOpcionesPais)
+    renderOpcionesPais();
 
     // Defaults
     $("fFecha").valueAsDate = new Date();
@@ -155,6 +170,7 @@
     $("inputExcel").addEventListener("change", onArchivoSeleccionado);
     $("fSet").addEventListener("input", onSetSeleccionado);
     $("fModalidad").addEventListener("change", () => {
+      renderOpcionesPais();
       actualizarVisibilidadDescuentos();
       limitarItemsAlMaximo();
       recalcularTodo();

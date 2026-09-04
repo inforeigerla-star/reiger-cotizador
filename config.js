@@ -61,5 +61,14 @@ window.REIGER_CONFIG = {
     "Cuba","Ecuador","El Salvador","Estados Unidos","Guatemala","Haití",
     "Honduras","Jamaica","México","Nicaragua","Panamá","Paraguay","Perú",
     "Puerto Rico","República Dominicana","Trinidad y Tobago","Uruguay","Venezuela"
+  ],
+
+  // Lista de País que se usa en vez de la de arriba cuando la modalidad
+  // es "Sudamérica" o "Sudamérica c/desc.": solo países sudamericanos,
+  // más "Miami" (destino habitual de envío/consolidación para esos
+  // pedidos, no es un país pero se usa igual en ese campo).
+  paisesSudamerica: [
+    "Argentina","Bolivia","Brasil","Chile","Colombia","Ecuador",
+    "Paraguay","Perú","Uruguay","Venezuela","Miami"
   ]
 };
