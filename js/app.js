@@ -156,6 +156,7 @@
     actualizarVisibilidadDescuentos();
     renderItems();
     recalcularTodo();
+    renderConfirmados();
 
     // Restaurar el Excel de la última vez, si hay uno guardado en este navegador
     const cache = leerExcelCache();
@@ -232,6 +233,7 @@
       $("fPagoMonto").value = "";
       $("fPagoNota").value = "";
       renderCuenta();
+      renderConfirmados();
     });
     $("btnExportarCuentaPdf").addEventListener("click", () => {
       const cuenta = ReigerCuentas.obtener(cuentaAbiertaNumero);
@@ -652,6 +654,7 @@
         if (!confirm(`¿Eliminar la cotización N° ${numero} del historial? Esto no borra el PDF ya descargado, solo el registro.`)) return;
         ReigerHistorial.eliminarRegistro(numero);
         renderHistorial();
+        renderConfirmados();
       });
     });
 
@@ -663,6 +666,7 @@
         ReigerHistorial.actualizarRegistro(numero, { estado: "CONFIRMADA" });
         ReigerCuentas.confirmar(registro);
         renderHistorial();
+        renderConfirmados();
         abrirCuenta(numero);
       });
     });
@@ -671,6 +675,42 @@
     });
     tbody.querySelectorAll("button.editar-cot").forEach(btn => {
       btn.addEventListener("click", () => cargarParaEditar(Number(btn.dataset.numero)));
+    });
+  }
+
+  // Panel fijo a la derecha con los presupuestos ya CONFIRMADOS: tocar
+  // uno abre directo su estado de cuenta (mismo modal que el botón 💰
+  // del historial), para entrar a cargar/editar pagos sin tener que
+  // pasar primero por "Ver historial".
+  function renderConfirmados() {
+    const cont = $("listaConfirmados");
+    const lista = ReigerHistorial.obtenerTodos().filter(r => r.estado === "CONFIRMADA");
+
+    if (!lista.length) {
+      cont.innerHTML = `<div class="aviso" style="margin-top:0;">Todavía no hay presupuestos confirmados. Confirmá una cotización desde "Ver historial" para que aparezca acá.</div>`;
+      return;
+    }
+
+    cont.innerHTML = lista.map(r => {
+      const cuenta = ReigerCuentas.obtener(r.numero);
+      const saldo = cuenta ? ReigerCuentas.calcularSaldo(cuenta).saldoPendiente : r.total;
+      const alDia = saldo <= 0.01;
+      return `
+        <div class="confirmado-item" data-numero="${r.numero}" title="Abrir estado de cuenta">
+          <div class="confirmado-item-top">
+            <span class="badge">${r.numero}</span>
+            <span class="confirmado-cliente">${r.cliente || "-"}</span>
+          </div>
+          <div class="confirmado-item-bottom">
+            <span>${ReigerCalc.formatoMoneda(r.total, r.moneda)}</span>
+            <span class="${alDia ? "confirmado-al-dia" : "confirmado-saldo"}">${alDia ? "Pagado" : "Saldo " + ReigerCalc.formatoMoneda(saldo, r.moneda)}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    cont.querySelectorAll(".confirmado-item").forEach(div => {
+      div.addEventListener("click", () => abrirCuenta(Number(div.dataset.numero)));
     });
   }
 
@@ -775,6 +815,7 @@
       btn.addEventListener("click", () => {
         ReigerCuentas.eliminarPago(cuentaAbiertaNumero, Number(btn.dataset.idx));
         renderCuenta();
+        renderConfirmados();
       });
     });
   }

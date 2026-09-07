@@ -292,6 +292,48 @@ table.descuentos input {
 }
 #bloqueTotalesB { margin-top: .3rem; }
 
+/* ---------- Presupuestos confirmados (panel lateral) ---------- */
+#listaConfirmados {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: .2rem;
+}
+.confirmado-item {
+  background: var(--crema);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: .5rem .7rem;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.confirmado-item:hover { background: #fdf1c8; border-color: var(--violeta); }
+.confirmado-item-top {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .25rem;
+}
+.confirmado-cliente {
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--texto);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.confirmado-item-bottom {
+  display: flex;
+  justify-content: space-between;
+  font-size: .78rem;
+  color: #555;
+}
+.confirmado-al-dia { color: #1e7a34; font-weight: 600; }
+.confirmado-saldo { color: #b3261e; font-weight: 600; }
+
 /* ---------- Botonera acciones ---------- */
 .acciones { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
 .btn {
