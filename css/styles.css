@@ -292,22 +292,42 @@ table.descuentos input {
 }
 #bloqueTotalesB { margin-top: .3rem; }
 
-/* ---------- Presupuestos confirmados (panel lateral) ---------- */
-#listaConfirmados {
+/* ---------- Presupuestos confirmados (ventana arriba de todo) ---------- */
+.confirmados-top {
+  max-width: 1500px;
+  margin: 1.1rem auto 0;
+  padding: 0 1.5rem;
+}
+.confirmados-top-header h2 {
+  font-size: .95rem;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: #fff;
+  background: var(--violeta);
+  margin: 0;
+  padding: .6rem 1rem;
+  border-radius: 10px 10px 0 0;
+}
+.confirmados-grid {
   display: flex;
-  flex-direction: column;
-  gap: .5rem;
-  max-height: 320px;
-  overflow-y: auto;
-  padding-right: .2rem;
+  flex-wrap: wrap;
+  gap: .7rem;
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
 }
 .confirmado-item {
   background: var(--crema);
   border: 1px solid var(--borde);
   border-radius: 8px;
-  padding: .5rem .7rem;
+  padding: .55rem .8rem;
   cursor: pointer;
   transition: background .15s, border-color .15s;
+  flex: 0 1 230px;
+  min-width: 200px;
 }
 .confirmado-item:hover { background: #fdf1c8; border-color: var(--violeta); }
 .confirmado-item-top {
@@ -328,6 +348,7 @@ table.descuentos input {
 .confirmado-item-bottom {
   display: flex;
   justify-content: space-between;
+  gap: .5rem;
   font-size: .78rem;
   color: #555;
 }
