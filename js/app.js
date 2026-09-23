@@ -154,6 +154,7 @@
 
     renderTablaDescuentos();
     actualizarVisibilidadDescuentos();
+    actualizarVisibilidadIva();
     renderItems();
     recalcularTodo();
     renderConfirmados();
@@ -174,10 +175,11 @@
     $("fModalidad").addEventListener("change", () => {
       renderOpcionesPais();
       actualizarVisibilidadDescuentos();
+      actualizarVisibilidadIva();
       limitarItemsAlMaximo();
       recalcularTodo();
     });
-    ["fCantidadSets", "fEnvioUnitario", "fIncluirEnvio", "fMoneda", "fDolarVenta", "fBasePago", "fCliente"]
+    ["fCantidadSets", "fEnvioUnitario", "fIncluirEnvio", "fMoneda", "fDolarVenta", "fAplicaIva", "fBasePago", "fCliente"]
       .forEach(id => $(id).addEventListener("input", recalcularTodo));
 
     // Comparador de modalidades (Escenario B): reutiliza el mismo cliente,
@@ -193,11 +195,13 @@
         $("fModalidadB").value = $("fModalidad").value === "Argentina" ? "Sudamérica" : "Argentina";
       }
       actualizarVisibilidadDescuentos();
+      actualizarVisibilidadIva();
       recalcularTodo();
     });
-    ["fModalidadB", "fCantidadSetsB", "fEnvioUnitarioB", "fIncluirEnvioB"].forEach(id =>
+    ["fModalidadB", "fCantidadSetsB", "fEnvioUnitarioB", "fIncluirEnvioB", "fAplicaIvaB"].forEach(id =>
       $(id).addEventListener("input", () => {
         actualizarVisibilidadDescuentos();
+        actualizarVisibilidadIva();
         recalcularTodo();
       })
     );
@@ -452,6 +456,14 @@
     $("bloqueTablaDescuentos").classList.toggle("oculto", !esConDesc);
   }
 
+  // El campo "IVA" (con/sin) solo tiene sentido en las modalidades
+  // Argentina (en las de exterior nunca se cobra IVA, así que no hay nada
+  // para elegir ahí).
+  function actualizarVisibilidadIva() {
+    $("campoAplicaIva").classList.toggle("oculto", !ReigerCalc.esVentaArgentina($("fModalidad").value));
+    $("campoAplicaIvaB").classList.toggle("oculto", !ReigerCalc.esVentaArgentina($("fModalidadB").value));
+  }
+
   // ==========================================================
   // Cálculo y totales en vivo
   // ==========================================================
@@ -482,6 +494,7 @@
       monedaSalida: $("fMoneda").value,
       dolarVenta: Number($("fDolarVenta").value) || 0,
       ivaPct: (excelData && typeof excelData.ivaPct === "number") ? excelData.ivaPct : CFG.defaults.ivaPct,
+      aplicaIva: $("fAplicaIva" + sufijo).value !== "no",
       baseParaPlanDePago: $("fBasePago").value
     };
   }
@@ -497,8 +510,14 @@
       html += fila("Precio unitario (sin descuento)", ReigerCalc.formatoMoneda(c.precioUnitarioConvertido, moneda));
       html += fila(`Precio unitario (con descuento ${Math.round(c.descuentoAplicado * 100)}%)`, ReigerCalc.formatoMoneda(c.precioUnitarioConDescuento, moneda));
     }
-    html += fila(c.etiquetaPrimeraLinea, ReigerCalc.formatoMoneda(c.totalSetsConvertido, moneda));
-    html += fila(c.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(c.segundaLineaConvertida, moneda));
+    // Si es Argentina sin IVA, no hay desglose que mostrar (ver calc.js):
+    // etiquetaPrimeraLinea/etiquetaSegundaLinea vienen null y se saltean.
+    if (c.etiquetaPrimeraLinea) {
+      html += fila(c.etiquetaPrimeraLinea, ReigerCalc.formatoMoneda(c.totalSetsConvertido, moneda));
+    }
+    if (c.etiquetaSegundaLinea) {
+      html += fila(c.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(c.segundaLineaConvertida, moneda));
+    }
     html += `<div class="fila final"><span>${c.etiquetaTotalFinal}</span><span>${ReigerCalc.formatoMoneda(c.totalFinal, moneda)}</span></div>`;
     html += `<div class="fila pago"><span>50% inicio producción</span><span>${ReigerCalc.formatoMoneda(c.pagoInicio, moneda)}</span></div>`;
     html += `<div class="fila pago"><span>50% al finalizar</span><span>${ReigerCalc.formatoMoneda(c.pagoFinal, moneda)}</span></div>`;
@@ -584,6 +603,7 @@
       envioUnitarioUSD: input.envioUnitarioUSD,
       incluirEnvio: input.incluirEnvio,
       monedaSalida: input.monedaSalida,
+      aplicaIva: input.aplicaIva,
       basePago: input.baseParaPlanDePago,
       items: datosPdf.items.map(it => Object.assign({}, it))
     };
@@ -750,6 +770,9 @@
     $("fEnvioUnitario").value = snap.envioUnitarioUSD ?? CFG.defaults.envioUnitarioUSD;
     $("fIncluirEnvio").value = snap.incluirEnvio ? "Sí" : "No";
     $("fMoneda").value = snap.monedaSalida || "USD";
+    // Snapshots de antes de que existiera esta opción no tienen "aplicaIva"
+    // guardado: se asume "Con IVA" (el comportamiento de siempre).
+    $("fAplicaIva").value = snap.aplicaIva === false ? "no" : "si";
     $("fBasePago").value = snap.basePago || CFG.defaults.baseParaPlanDePago;
 
     items = (snap.items || []).map(it => Object.assign({}, it));
@@ -757,6 +780,7 @@
     edicionRevisionDe = numero;
     actualizarAvisoEdicion();
     actualizarVisibilidadDescuentos();
+    actualizarVisibilidadIva();
     limitarItemsAlMaximo(); // recorta al máximo de la modalidad cargada y renderiza los ítems
     recalcularTodo();
 

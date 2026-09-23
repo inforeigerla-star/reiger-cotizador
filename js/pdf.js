@@ -150,8 +150,14 @@ const ReigerPdf = (function () {
       y = lineaTotal(`Precio unitario (con descuento ${pct}%):`, ReigerCalc.formatoMoneda(datos.calculo.precioUnitarioConDescuento, datos.moneda), y, false, 9.5);
     }
 
-    y = lineaTotal(datos.calculo.etiquetaPrimeraLinea, ReigerCalc.formatoMoneda(datos.calculo.totalSetsConvertido, datos.moneda), y, false, 9.5);
-    y = lineaTotal(datos.calculo.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(datos.calculo.segundaLineaConvertida, datos.moneda), y, false, 9.5);
+    // Si es una cotización Argentina sin IVA, no hay desglose: se omiten
+    // estas dos líneas y va directo el total final más abajo.
+    if (datos.calculo.etiquetaPrimeraLinea) {
+      y = lineaTotal(datos.calculo.etiquetaPrimeraLinea, ReigerCalc.formatoMoneda(datos.calculo.totalSetsConvertido, datos.moneda), y, false, 9.5);
+    }
+    if (datos.calculo.etiquetaSegundaLinea) {
+      y = lineaTotal(datos.calculo.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(datos.calculo.segundaLineaConvertida, datos.moneda), y, false, 9.5);
+    }
     y += 1;
 
     doc.setDrawColor(...VIOLETA);

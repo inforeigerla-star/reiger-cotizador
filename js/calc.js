@@ -59,6 +59,7 @@ const ReigerCalc = (function () {
       monedaSalida,         // "USD" | "ARS"
       dolarVenta,           // number
       ivaPct,               // number (0.21)
+      aplicaIva,            // boolean: false = cotización REAL sin IVA (no solo visual) para modalidades Argentina
       baseParaPlanDePago    // "Precio sin IVA" | "Precio con IVA"
     } = input;
 
@@ -75,7 +76,11 @@ const ReigerCalc = (function () {
       ? 0
       : (incluirEnvio ? envioUnitarioUSD * cant : 0);
 
-    const ivaUSD = esVentaArgentina(modalidad) ? subtotalSetsUSD * ivaPct : 0;
+    // aplicaIva=false apaga el IVA de verdad (no es solo un cambio visual):
+    // esa cotización puntual queda sin IVA y el cliente paga ese monto y
+    // nada más.
+    const cobraIva = esVentaArgentina(modalidad) && aplicaIva !== false;
+    const ivaUSD = cobraIva ? subtotalSetsUSD * ivaPct : 0;
 
     const factorMoneda = monedaSalida === "ARS" ? (Number(dolarVenta) || 1) : 1;
 
@@ -93,23 +98,27 @@ const ReigerCalc = (function () {
     const pagoInicio = precioBasePlan * 0.5;
     const pagoFinal = precioBasePlan * 0.5;
 
-    // Etiqueta de la segunda línea, igual que B32 en el Excel
-    let etiquetaSegundaLinea;
-    if (esVentaArgentina(modalidad)) {
+    // Etiquetas del bloque de totales. Si es venta Argentina pero sin IVA
+    // (cobraIva=false), no hay nada que desglosar: un solo total, sin
+    // línea de IVA ni de "sin IVA ni aranceles" por separado.
+    let etiquetaSegundaLinea, etiquetaPrimeraLinea, etiquetaTotalFinal;
+    if (esVentaArgentina(modalidad) && !cobraIva) {
+      etiquetaSegundaLinea = null;
+      etiquetaPrimeraLinea = null;
+      etiquetaTotalFinal = "PRECIO TOTAL (sin IVA):";
+    } else if (esVentaArgentina(modalidad)) {
       etiquetaSegundaLinea = `IVA (${(ivaPct * 100).toFixed(0)}%):`;
+      etiquetaPrimeraLinea = "PRECIO TOTAL (sin IVA ni aranceles):";
+      etiquetaTotalFinal = "PRECIO TOTAL (con IVA):";
     } else if (incluirEnvio) {
       etiquetaSegundaLinea = "Envío estimado:";
+      etiquetaPrimeraLinea = "PRECIO TOTAL Sets (sin envío):";
+      etiquetaTotalFinal = "PRECIO TOTAL:";
     } else {
       etiquetaSegundaLinea = "Cotización sin envío:";
+      etiquetaPrimeraLinea = "PRECIO TOTAL Sets (sin envío):";
+      etiquetaTotalFinal = "PRECIO TOTAL:";
     }
-
-    let etiquetaPrimeraLinea = esVentaArgentina(modalidad)
-      ? "PRECIO TOTAL (sin IVA ni aranceles):"
-      : "PRECIO TOTAL Sets (sin envío):";
-
-    let etiquetaTotalFinal = esVentaArgentina(modalidad)
-      ? "PRECIO TOTAL (con IVA):"
-      : "PRECIO TOTAL:";
 
     return {
       precioValido,
