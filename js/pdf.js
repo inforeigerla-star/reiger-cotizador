@@ -202,19 +202,10 @@ const ReigerPdf = (function () {
     y += 2;
 
     // -------- Datos bancarios --------
-    doc.setDrawColor(220, 210, 225);
-    doc.setLineWidth(0.2);
-    doc.line(margen, y, anchoPag - margen, y);
-    y += 4;
-    doc.setFontSize(8.3);
-    doc.setTextColor(...GRIS_TEXTO);
-    doc.setFont("helvetica", "bold");
-    doc.text(datos.banco.nombre, margen, y); y += 3.9;
-    doc.setFont("helvetica", "normal");
-    doc.text(`Swift Code: ${datos.banco.swift}`, margen, y); y += 3.9;
-    doc.text(`Acct. N°: ${datos.banco.cuentaNumero}`, margen, y); y += 3.9;
-    doc.text(`Acct. Name: ${datos.banco.cuentaTitular}`, margen, y);
-    y += 3;
+    // Se sacaron de este PDF (la cotización) a pedido: mostrar la cuenta
+    // bancaria en una propuesta todavía no cerrada se consideró prematuro.
+    // Siguen apareciendo en el PDF de Estado de cuenta (ReigerPdf.generarEstadoCuenta),
+    // donde tiene sentido porque ahí sí hay un saldo concreto para cobrar.
 
     // -------- Banner de pie de página --------
     // Va a continuación de todo el contenido (no fijo al borde de la
