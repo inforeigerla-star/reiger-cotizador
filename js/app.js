@@ -107,6 +107,7 @@
     $("pantallaPin").classList.add("oculto");
     $("app").classList.remove("oculto");
     initApp();
+    if (window.ReigerRepuestos) ReigerRepuestos.init();
   }
 
   // ==========================================================

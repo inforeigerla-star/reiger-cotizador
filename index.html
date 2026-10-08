@@ -13,7 +13,7 @@
   de subir este número — si no, el navegador puede seguir usando la copia
   anterior aunque el archivo en GitHub ya esté actualizado.
 -->
-<link rel="stylesheet" href="css/styles.css?v=2">
+<link rel="stylesheet" href="css/styles.css?v=3">
 </head>
 <body>
 
@@ -42,6 +42,12 @@
     </div>
   </header>
 
+  <nav class="tabs-top">
+    <button type="button" id="tabSets" class="tab-btn activa">Sets (Excel)</button>
+    <button type="button" id="tabRepuestos" class="tab-btn">Repuestos (manual)</button>
+  </nav>
+
+  <div id="vistaSets">
   <section class="confirmados-top">
     <div class="confirmados-top-header">
       <h2>💰 Presupuestos confirmados</h2>
@@ -239,6 +245,61 @@
 
     </div>
   </main>
+  </div>
+
+  <!-- ===================== VISTA REPUESTOS (manual) ===================== -->
+  <div id="vistaRepuestos" class="oculto">
+    <main>
+      <div class="col-ancha" style="display:flex; flex-direction:column; gap:1rem;">
+        <section class="panel">
+          <h2>Datos del cliente — Repuestos</h2>
+          <div class="grid-2">
+            <div class="campo"><label>Cliente</label><input id="rpCliente" type="text"></div>
+            <div class="campo"><label>N° Consulta</label><input id="rpNConsulta" type="text" disabled></div>
+            <div class="campo"><label>Dirección</label><input id="rpDireccion" type="text"></div>
+            <div class="campo"><label>Fecha</label><input id="rpFecha" type="date"></div>
+            <div class="campo"><label>Ciudad</label><input id="rpCiudad" type="text"></div>
+            <div class="campo"><label>Validez</label><input id="rpValidez" type="text"></div>
+            <div class="campo"><label>País</label><select id="rpPais"></select></div>
+            <div class="campo"><label>Incoterm</label><select id="rpIncoterm"><option>EXW</option><option>FOB</option></select></div>
+            <div class="campo"><label>Cond. de pago</label><select id="rpCondPago"><option>Transferencia</option><option>Efectivo</option></select></div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Repuestos</h2>
+          <table class="items">
+            <thead>
+              <tr><th style="width:36px"></th><th class="col-codigo">Código</th><th>Descripción</th><th class="col-cant">Cant.</th><th class="col-precio">P. unit. (USD)</th><th class="col-sub">Importe</th><th style="width:36px"></th></tr>
+            </thead>
+            <tbody id="rpTbodyItems"></tbody>
+          </table>
+          <div class="items-footer">
+            <span id="rpContador">0 ítems</span>
+            <button type="button" id="rpBtnAgregar">+ Agregar repuesto</button>
+          </div>
+          <div class="aviso" id="rpLeyenda" style="margin-top:.6rem; font-weight:600;"></div>
+        </section>
+      </div>
+
+      <div class="col-panel" style="display:flex; flex-direction:column; gap:1rem;">
+        <section class="panel">
+          <h2>Totales</h2>
+          <div class="grid-2" style="grid-template-columns:1fr; margin-bottom:.8rem;">
+            <div class="campo"><label>Envío (USD)</label><input id="rpEnvio" type="number" min="0" step="0.01"></div>
+            <div class="campo"><label>Costo por transferencia bancaria (USD)</label><input id="rpTransf" type="number" min="0" step="0.01"></div>
+          </div>
+          <div class="totales" id="rpTotales"></div>
+        </section>
+        <section class="panel">
+          <div class="acciones" style="flex-direction:column;">
+            <button class="btn btn-primario" id="rpBtnPdf">Generar PDF de repuestos</button>
+            <button class="btn btn-secundario" id="rpBtnHistorial">Ver historial de repuestos</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
 
   <footer class="app-footer">Reiger Suspension Latinoamérica — Cotizador interno</footer>
 </div>
@@ -263,6 +324,22 @@
           </tr>
         </thead>
         <tbody id="tbodyHistorial"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL HISTORIAL REPUESTOS ===================== -->
+<div id="modalHistorialRep" class="modal-fondo oculto">
+  <div class="modal-caja">
+    <button class="modal-cerrar" id="rpBtnCerrarHistorial">×</button>
+    <h2>Historial de repuestos</h2>
+    <div class="historial-wrap">
+      <table class="historial-tabla">
+        <thead>
+          <tr><th>N°</th><th>Fecha</th><th>Cliente</th><th>País</th><th>Ítems</th><th>Total</th><th>Moneda</th><th></th></tr>
+        </thead>
+        <tbody id="rpTbodyHistorial"></tbody>
       </table>
     </div>
   </div>
@@ -311,14 +388,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
-<script src="config.js?v=2"></script>
+<script src="config.js?v=3"></script>
 <script src="js/logo.js?v=2"></script>
 <script src="js/banner.js?v=2"></script>
 <script src="js/xlsxdata.js?v=2"></script>
 <script src="js/calc.js?v=2"></script>
 <script src="js/historial.js?v=2"></script>
 <script src="js/cuentas.js?v=2"></script>
-<script src="js/pdf.js?v=3"></script>
-<script src="js/app.js?v=2"></script>
+<script src="js/pdf.js?v=4"></script>
+<script src="js/repuestos.js?v=1"></script>
+<script src="js/app.js?v=3"></script>
 </body>
 </html>

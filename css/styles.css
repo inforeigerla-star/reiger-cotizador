@@ -180,6 +180,21 @@ table.items td {
 }
 table.items tr:hover td { background: #fdf1c8; }
 table.items td.col-cant { width: 70px; }
+table.items td.col-precio { width: 110px; }
+table.items td.col-sub { width: 110px; text-align: right; white-space: nowrap; font-size: .85rem; }
+table.items th.col-precio, table.items th.col-sub { width: 110px; }
+
+/* Pestañas superiores (Sets / Repuestos) */
+.tabs-top {
+  display: flex; gap: .4rem;
+  max-width: 1400px; margin: .8rem auto 0; padding: 0 1rem;
+}
+.tab-btn {
+  padding: .55rem 1.2rem; border: 1px solid var(--borde);
+  border-bottom: 3px solid transparent; border-radius: 8px 8px 0 0;
+  background: #fff; color: #555; font-weight: 600; cursor: pointer;
+}
+.tab-btn.activa { color: var(--violeta); border-bottom-color: var(--violeta); background: #faf4fc; }
 table.items td.col-codigo { width: 190px; }
 table.items input, table.items select {
   width: 100%;

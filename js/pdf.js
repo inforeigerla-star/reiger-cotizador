@@ -215,6 +215,130 @@ const ReigerPdf = (function () {
     return doc;
   }
 
+  // -------- Cotización de repuestos (carga manual) --------
+  // Mismo estilo que generar(), pero con columna de precio unitario e
+  // importe, envío y transferencia como renglones propios y la leyenda
+  // de Duty bajo la tabla de ítems.
+  function generarRepuestos(datos) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const anchoPag = 210, margen = 14;
+    const fmt = v => ReigerCalc.formatoMoneda(v, "USD");
+    let y = 0;
+
+    const logoAncho = 40, logoAlto = logoAncho * (507 / 630);
+    if (window.REIGER_LOGO_BASE64) {
+      try { doc.addImage(window.REIGER_LOGO_BASE64, "JPEG", anchoPag - margen - logoAncho, 6, logoAncho, logoAlto); } catch (e) {}
+    }
+    doc.setTextColor(...VIOLETA);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("COTIZACIÓN DE REPUESTOS", margen, 17);
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...GRIS_TEXTO);
+    doc.text(datos.contacto.email, margen, 26);
+    doc.text(datos.contacto.telefono, margen, 32);
+
+    y = Math.max(6 + logoAlto, 34) + 4;
+    doc.setDrawColor(...VIOLETA);
+    doc.setLineWidth(0.6);
+    doc.line(margen, y, anchoPag - margen, y);
+    y += 4;
+
+    doc.setFillColor(...LAVANDA);
+    doc.rect(margen, y, anchoPag - margen * 2, 6, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...VIOLETA_OSC);
+    doc.text("DATOS DEL CLIENTE", margen + 2, y + 4.3);
+    y += 9;
+
+    const colIzqX = margen, colDerX = 110;
+    doc.setFontSize(9);
+    const filasIzq = [["Cliente:", datos.cliente], ["Dirección:", datos.direccion], ["Ciudad:", datos.ciudad], ["País:", datos.pais], ["Cond. pago:", datos.condPago]];
+    const filasDer = [["N° Consulta:", String(datos.numero)], ["Fecha:", datos.fecha], ["Validez:", datos.validez], ["Incoterm:", datos.incoterm]];
+    let yy = y;
+    filasIzq.forEach(([l, v]) => {
+      doc.setFont("helvetica", "bold"); doc.text(l, colIzqX, yy);
+      doc.setFont("helvetica", "normal"); doc.text(String(v || "-"), colIzqX + 24, yy);
+      yy += 4.8;
+    });
+    let yy2 = y;
+    filasDer.forEach(([l, v]) => {
+      doc.setFont("helvetica", "bold"); doc.text(l, colDerX, yy2);
+      doc.setFont("helvetica", "normal"); doc.text(String(v || "-"), colDerX + 26, yy2);
+      yy2 += 4.8;
+    });
+    y = Math.max(yy, yy2) + 3;
+
+    const body = datos.items.map(it => [it.codigo, it.descripcion, String(it.cantidad), fmt(it.precio), fmt(it.cantidad * it.precio)]);
+    doc.autoTable({
+      startY: y,
+      margin: { left: margen, right: margen },
+      head: [["Cód.", "Descripción del Producto", "Cant.", "P. unit.", "Importe"]],
+      body,
+      theme: "plain",
+      styles: { fontSize: 9, cellPadding: 1.4, textColor: GRIS_TEXTO, lineColor: [230, 220, 235], lineWidth: 0.1 },
+      headStyles: { fillColor: NAVY, textColor: 255, fontStyle: "bold", fontSize: 8.5 },
+      bodyStyles: { fillColor: CREMA },
+      columnStyles: {
+        0: { cellWidth: 28 },
+        2: { cellWidth: 14, halign: "center" },
+        3: { cellWidth: 28, halign: "right" },
+        4: { cellWidth: 30, halign: "right" }
+      }
+    });
+    y = doc.lastAutoTable.finalY + 4;
+
+    // Leyenda bajo todos los ítems
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...VIOLETA_OSC);
+    doc.text(datos.leyenda, margen, y);
+    doc.setTextColor(...GRIS_TEXTO);
+    y += 7;
+
+    const xDer = anchoPag - margen;
+    function linea(label, valor, negrita, tam) {
+      doc.setFont("helvetica", negrita ? "bold" : "normal");
+      doc.setFontSize(tam);
+      doc.text(label, margen, y);
+      doc.text(valor, xDer, y, { align: "right" });
+      y += 6;
+    }
+    linea("Subtotal repuestos:", fmt(datos.subtotal), false, 9.5);
+    linea("Envío (estimado):", fmt(datos.envio), false, 9.5);
+    linea("Costo por transferencia bancaria:", fmt(datos.transf), false, 9.5);
+    y += 1;
+    doc.setDrawColor(...VIOLETA);
+    doc.setLineWidth(0.4);
+    doc.line(margen, y, xDer, y);
+    y += 5;
+    doc.setTextColor(...VIOLETA_OSC);
+    linea("PRECIO TOTAL:", fmt(datos.total), true, 11.5);
+    doc.setTextColor(...GRIS_TEXTO);
+    y += 2;
+
+    doc.setFontSize(7.3);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(110, 110, 110);
+    (datos.notas || []).forEach(nota => {
+      const lineas = doc.splitTextToSize(nota, anchoPag - margen * 2);
+      doc.text(lineas, margen, y);
+      y += lineas.length * 3.1 + 0.6;
+    });
+    y += 2;
+
+    dibujarBannerPie(doc, anchoPag, margen, y);
+    return doc;
+  }
+
+  function nombreArchivoRepuestos(numero, cliente) {
+    const limpiar = s => String(s || "").replace(/[\\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim();
+    return `REP-${String(numero).padStart(4, "0")} - ${limpiar(cliente)}.pdf`.slice(0, 150);
+  }
+
   // Banner institucional real (imagen provista), centrado, ubicado
   // justo después del resto del contenido. Ocupa el mismo ancho que
   // el resto del contenido (de margen a margen, igual que la tabla
@@ -381,5 +505,5 @@ const ReigerPdf = (function () {
     return `Estado de cuenta - COT-${String(numero).padStart(4, "0")} - ${limpiar(cliente)}.pdf`.slice(0, 150);
   }
 
-  return { generar, nombreArchivo, generarEstadoCuenta, nombreArchivoCuenta };
+  return { generar, nombreArchivo, generarEstadoCuenta, nombreArchivoCuenta, generarRepuestos, nombreArchivoRepuestos };
 })();

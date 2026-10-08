@@ -31,6 +31,15 @@ window.REIGER_CONFIG = {
     "* El precio del envío es un aproximado y puede variar."
   ],
 
+  // Pestaña "Repuestos (manual)": valores por defecto (todos editables en
+  // pantalla al armar cada cotización).
+  repuestos: {
+    envioUSD: 0,               // envío predeterminado (USD)
+    transferenciaUSD: 0,       // costo por transferencia bancaria (USD)
+    leyendaDuty: "Duty a cargo del cliente.",
+    maxItems: 25
+  },
+
   // Valores por defecto del panel de control
   defaults: {
     envioUnitarioUSD: 0,
