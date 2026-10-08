@@ -107,7 +107,8 @@
     $("pantallaPin").classList.add("oculto");
     $("app").classList.remove("oculto");
     initApp();
-    if (window.ReigerRepuestos) ReigerRepuestos.init();
+    // OJO: "const" de nivel superior no cuelga de window, por eso typeof y no window.X
+    if (typeof ReigerRepuestos !== "undefined") ReigerRepuestos.init();
   }
 
   // ==========================================================
