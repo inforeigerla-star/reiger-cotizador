@@ -223,10 +223,14 @@
             <div id="dolarEstado" style="font-size:.68rem; color:#888; margin-top:.25rem;"></div>
           </div>
           <div class="campo">
-            <label>Base para plan de pago 50/50</label>
+            <label>Base para plan de pago</label>
             <select id="fBasePago">
               <option>Precio sin IVA</option><option>Precio con IVA</option>
             </select>
+          </div>
+          <div class="campo">
+            <label>% a pagar al iniciar producción (el resto, al finalizar)</label>
+            <input id="fPorcInicio" type="number" min="0" max="100" step="1" value="50">
           </div>
         </div>
 
@@ -392,15 +396,15 @@
 <script src="js/logo.js?v=2"></script>
 <script src="js/banner.js?v=2"></script>
 <script src="js/xlsxdata.js?v=2"></script>
-<script src="js/calc.js?v=2"></script>
+<script src="js/calc.js?v=3"></script>
 <script src="js/historial.js?v=2"></script>
 <script src="js/cuentas.js?v=2"></script>
-<script src="js/pdf.js?v=4"></script>
+<script src="js/pdf.js?v=5"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script src="js/repuestos.js?v=2"></script>
 <script src="js/sync.js?v=1"></script>
-<script src="js/app.js?v=5"></script>
+<script src="js/app.js?v=6"></script>
 </body>
 </html>

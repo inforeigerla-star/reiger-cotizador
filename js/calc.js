@@ -60,7 +60,8 @@ const ReigerCalc = (function () {
       dolarVenta,           // number
       ivaPct,               // number (0.21)
       aplicaIva,            // boolean: false = cotización REAL sin IVA (no solo visual) para modalidades Argentina
-      baseParaPlanDePago    // "Precio sin IVA" | "Precio con IVA"
+      baseParaPlanDePago,   // "Precio sin IVA" | "Precio con IVA"
+      porcentajeInicio      // 0-100: % a pagar al iniciar producción (el resto al finalizar). Por defecto 50.
     } = input;
 
     const precioValido = typeof precioUnitarioUSD === "number" && isFinite(precioUnitarioUSD);
@@ -95,8 +96,12 @@ const ReigerCalc = (function () {
     const precioUnitarioConDescuento = precioBaseUSD * (1 - descuentoAplicado) * factorMoneda;
 
     const precioBasePlan = baseParaPlanDePago === "Precio con IVA" ? totalFinal : totalSetsConvertido;
-    const pagoInicio = precioBasePlan * 0.5;
-    const pagoFinal = precioBasePlan * 0.5;
+    let pctInicio = Number(porcentajeInicio);
+    if (!isFinite(pctInicio) || porcentajeInicio === "" || porcentajeInicio == null) pctInicio = 50;
+    pctInicio = Math.min(100, Math.max(0, pctInicio));
+    const pctFinal = 100 - pctInicio;
+    const pagoInicio = precioBasePlan * pctInicio / 100;
+    const pagoFinal = precioBasePlan * pctFinal / 100;
 
     // Etiquetas del bloque de totales. Si es venta Argentina pero sin IVA
     // (cobraIva=false), no hay nada que desglosar: un solo total, sin
@@ -134,6 +139,8 @@ const ReigerCalc = (function () {
       precioUnitarioConvertido,
       precioUnitarioConDescuento,
       precioBasePlan,
+      pctInicio,
+      pctFinal,
       pagoInicio,
       pagoFinal,
       etiquetaPrimeraLinea,

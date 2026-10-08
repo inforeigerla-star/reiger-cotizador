@@ -182,8 +182,8 @@ const ReigerPdf = (function () {
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.text(`Precio base (${datos.basePago}): ${ReigerCalc.formatoMoneda(datos.calculo.precioBasePlan, datos.moneda)}`, margen, y); y += 4.8;
-    doc.text(`50% para iniciar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoInicio, datos.moneda)}`, margen, y); y += 4.8;
-    doc.text(`50% al finalizar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoFinal, datos.moneda)}`, margen, y); y += 4.8;
+    doc.text(`${datos.calculo.pctInicio}% para iniciar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoInicio, datos.moneda)}`, margen, y); y += 4.8;
+    doc.text(`${datos.calculo.pctFinal}% al finalizar producción: ${ReigerCalc.formatoMoneda(datos.calculo.pagoFinal, datos.moneda)}`, margen, y); y += 4.8;
     doc.text("Pago mediante transferencia bancaria.", margen, y); y += 3.8;
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);

@@ -162,6 +162,7 @@
     $("fEnvioUnitario").value = CFG.defaults.envioUnitarioUSD;
     $("fMoneda").value = CFG.defaults.monedaSalida;
     $("fBasePago").value = CFG.defaults.baseParaPlanDePago;
+    $("fPorcInicio").value = 50;
     $("fNConsulta").value = ReigerHistorial.siguienteNumero();
 
     renderTablaDescuentos();
@@ -191,7 +192,7 @@
       limitarItemsAlMaximo();
       recalcularTodo();
     });
-    ["fCantidadSets", "fEnvioUnitario", "fIncluirEnvio", "fMoneda", "fDolarVenta", "fAplicaIva", "fBasePago", "fCliente"]
+    ["fCantidadSets", "fEnvioUnitario", "fIncluirEnvio", "fMoneda", "fDolarVenta", "fAplicaIva", "fBasePago", "fPorcInicio", "fCliente"]
       .forEach(id => $(id).addEventListener("input", recalcularTodo));
 
     // Comparador de modalidades (Escenario B): reutiliza el mismo cliente,
@@ -507,7 +508,8 @@
       dolarVenta: Number($("fDolarVenta").value) || 0,
       ivaPct: (excelData && typeof excelData.ivaPct === "number") ? excelData.ivaPct : CFG.defaults.ivaPct,
       aplicaIva: $("fAplicaIva" + sufijo).value !== "no",
-      baseParaPlanDePago: $("fBasePago").value
+      baseParaPlanDePago: $("fBasePago").value,
+      porcentajeInicio: $("fPorcInicio").value
     };
   }
 
@@ -531,8 +533,8 @@
       html += fila(c.etiquetaSegundaLinea, ReigerCalc.formatoMoneda(c.segundaLineaConvertida, moneda));
     }
     html += `<div class="fila final"><span>${c.etiquetaTotalFinal}</span><span>${ReigerCalc.formatoMoneda(c.totalFinal, moneda)}</span></div>`;
-    html += `<div class="fila pago"><span>50% inicio producción</span><span>${ReigerCalc.formatoMoneda(c.pagoInicio, moneda)}</span></div>`;
-    html += `<div class="fila pago"><span>50% al finalizar</span><span>${ReigerCalc.formatoMoneda(c.pagoFinal, moneda)}</span></div>`;
+    html += `<div class="fila pago"><span>${c.pctInicio}% inicio producción</span><span>${ReigerCalc.formatoMoneda(c.pagoInicio, moneda)}</span></div>`;
+    html += `<div class="fila pago"><span>${c.pctFinal}% al finalizar</span><span>${ReigerCalc.formatoMoneda(c.pagoFinal, moneda)}</span></div>`;
     if (!c.precioValido) {
       html += `<div class="aviso" style="margin-top:.6rem;">Elegí un archivo Excel y un set para calcular el precio.</div>`;
     }
@@ -617,6 +619,7 @@
       monedaSalida: input.monedaSalida,
       aplicaIva: input.aplicaIva,
       basePago: input.baseParaPlanDePago,
+      porcentajeInicio: calculo.pctInicio,
       items: datosPdf.items.map(it => Object.assign({}, it))
     };
 
@@ -786,6 +789,7 @@
     // guardado: se asume "Con IVA" (el comportamiento de siempre).
     $("fAplicaIva").value = snap.aplicaIva === false ? "no" : "si";
     $("fBasePago").value = snap.basePago || CFG.defaults.baseParaPlanDePago;
+    $("fPorcInicio").value = snap.porcentajeInicio != null ? snap.porcentajeInicio : 50;
 
     items = (snap.items || []).map(it => Object.assign({}, it));
 
