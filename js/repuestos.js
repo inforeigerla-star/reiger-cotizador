@@ -276,6 +276,10 @@ const ReigerRepuestos = (function () {
       renderHistorial();
       $("modalHistorialRep").classList.remove("oculto");
     });
+    window.addEventListener("reiger-sync", () => {
+      $("rpNConsulta").value = siguienteNumero();
+      if (!$("modalHistorialRep").classList.contains("oculto")) renderHistorial();
+    });
     $("rpBtnCerrarHistorial").addEventListener("click", () => $("modalHistorialRep").classList.add("oculto"));
   }
 

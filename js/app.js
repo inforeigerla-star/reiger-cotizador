@@ -109,6 +109,16 @@
     initApp();
     // OJO: "const" de nivel superior no cuelga de window, por eso typeof y no window.X
     if (typeof ReigerRepuestos !== "undefined") ReigerRepuestos.init();
+
+    // Sincronización con Firebase: cuando llegan datos de otro dispositivo
+    // se vuelve a dibujar lo que esté a la vista.
+    window.addEventListener("reiger-sync", () => {
+      renderConfirmados();
+      if (!$("modalHistorial").classList.contains("oculto")) renderHistorial();
+      if (!$("modalCuenta").classList.contains("oculto") && cuentaAbiertaNumero != null) renderCuenta();
+      $("fNConsulta").value = ReigerHistorial.siguienteNumero();
+    });
+    if (typeof ReigerSync !== "undefined") ReigerSync.init();
   }
 
   // ==========================================================
