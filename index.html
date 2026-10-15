@@ -13,7 +13,7 @@
   de subir este número — si no, el navegador puede seguir usando la copia
   anterior aunque el archivo en GitHub ya esté actualizado.
 -->
-<link rel="stylesheet" href="css/styles.css?v=3">
+<link rel="stylesheet" href="css/styles.css?v=4">
 </head>
 <body>
 
@@ -272,9 +272,9 @@
 
         <section class="panel">
           <h2>Repuestos</h2>
-          <table class="items">
+          <table class="items" id="rpTablaItems">
             <thead>
-              <tr><th style="width:36px"></th><th class="col-codigo">Código</th><th>Descripción</th><th class="col-cant">Cant.</th><th class="col-precio">P. unit. (USD)</th><th class="col-sub">Importe</th><th style="width:36px"></th></tr>
+              <tr><th style="width:36px"></th><th class="col-codigo">Código</th><th>Descripción</th><th class="col-cant">Cant.</th><th class="col-precio">P. unit. (USD)</th><th class="col-conv">P. unit. (ARS)</th><th class="col-sub">Importe</th><th style="width:36px"></th></tr>
             </thead>
             <tbody id="rpTbodyItems"></tbody>
           </table>
@@ -290,6 +290,23 @@
         <section class="panel">
           <h2>Totales</h2>
           <div class="grid-2" style="grid-template-columns:1fr; margin-bottom:.8rem;">
+            <div class="campo">
+              <label>Moneda de salida</label>
+              <select id="rpMoneda"><option>USD</option><option>ARS</option></select>
+            </div>
+            <div class="campo">
+              <label>Tipo de cambio (ARS por USD) — editable</label>
+              <div style="display:flex; gap:.4rem; align-items:center;">
+                <input id="rpTC" type="number" min="0" step="0.01" style="flex:1;">
+                <button type="button" id="rpBtnTC" title="Traer dólar oficial (DolarAPI)"
+                  style="padding:.4rem .6rem; border:1px solid var(--borde); border-radius:6px; background:#fff; cursor:pointer;">⟳</button>
+              </div>
+              <div id="rpTCEstado" style="font-size:.68rem; color:#888; margin-top:.25rem;">Solo se usa si la moneda es ARS.</div>
+            </div>
+            <div class="campo">
+              <label>IVA (21% sobre los repuestos)</label>
+              <select id="rpIva"><option value="no">Sin IVA</option><option value="si">Con IVA</option></select>
+            </div>
             <div class="campo"><label>Envío (USD)</label><input id="rpEnvio" type="number" min="0" step="0.01"></div>
             <div class="campo"><label>Costo por transferencia bancaria (USD)</label><input id="rpTransf" type="number" min="0" step="0.01"></div>
           </div>
@@ -399,11 +416,11 @@
 <script src="js/calc.js?v=3"></script>
 <script src="js/historial.js?v=2"></script>
 <script src="js/cuentas.js?v=2"></script>
-<script src="js/pdf.js?v=5"></script>
+<script src="js/pdf.js?v=6"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-<script src="js/repuestos.js?v=2"></script>
+<script src="js/repuestos.js?v=3"></script>
 <script src="js/sync.js?v=1"></script>
 <script src="js/app.js?v=6"></script>
 </body>

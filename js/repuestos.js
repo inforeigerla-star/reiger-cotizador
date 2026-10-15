@@ -20,7 +20,14 @@ const ReigerRepuestos = (function () {
 
   const $ = (id) => document.getElementById(id);
   const num = (v) => Number(v) || 0;
-  const fmt = (v) => ReigerCalc.formatoMoneda(v, "USD");
+  const fmtUsd = (v) => ReigerCalc.formatoMoneda(v, "USD");
+  // Formatea un monto en USD en la moneda de salida elegida (USD o ARS al T.C. cargado).
+  const fmt = (v) => { const m = monedaYFactor(); return ReigerCalc.formatoMoneda(v * m.factor, m.moneda); };
+  function monedaYFactor() {
+    const moneda = $("rpMoneda") ? $("rpMoneda").value : "USD";
+    const tc = $("rpTC") ? num($("rpTC").value) : 0;
+    return { moneda, tc, factor: moneda === "ARS" ? tc : 1 };
+  }
   const cfgRep = () => (window.REIGER_CONFIG.repuestos || {});
 
   function escapeAttr(s) {
@@ -56,7 +63,16 @@ const ReigerRepuestos = (function () {
     const subtotal = items.reduce((s, it) => s + num(it.cantidad) * num(it.precio), 0);
     const envio = num($("rpEnvio").value);
     const transf = num($("rpTransf").value);
-    return { subtotal, envio, transf, total: subtotal + envio + transf };
+    const m = monedaYFactor();
+    const aplicaIva = $("rpIva").value === "si";
+    const ivaPct = (window.REIGER_CONFIG.defaults.ivaPct) || 0.21;
+    // El IVA se calcula solo sobre los repuestos (no sobre envío ni transferencia).
+    const iva = aplicaIva ? subtotal * ivaPct : 0;
+    return {
+      subtotal, envio, transf, iva, aplicaIva, ivaPct,
+      moneda: m.moneda, tc: m.tc, factor: m.factor,
+      total: subtotal + iva + envio + transf
+    };
   }
 
   function itemsValidos() {
@@ -65,12 +81,16 @@ const ReigerRepuestos = (function () {
 
   function renderTotales() {
     const c = calcular();
+    const ars = c.moneda === "ARS";
     $("rpTotales").innerHTML =
-      `<div class="fila"><span>Subtotal repuestos:</span><span>${fmt(c.subtotal)}</span></div>` +
+      `<div class="fila"><span>Subtotal repuestos${c.aplicaIva ? " (sin IVA)" : ""}:</span><span>${fmt(c.subtotal)}</span></div>` +
+      (c.aplicaIva ? `<div class="fila"><span>IVA (${Math.round(c.ivaPct * 100)}%):</span><span>${fmt(c.iva)}</span></div>` : "") +
       `<div class="fila"><span>Envío (estimado):</span><span>${fmt(c.envio)}</span></div>` +
       `<div class="fila"><span>Costo por transferencia bancaria:</span><span>${fmt(c.transf)}</span></div>` +
-      `<div class="fila final"><span>PRECIO TOTAL:</span><span>${fmt(c.total)}</span></div>`;
-    $("rpBtnPdf").disabled = !$("rpCliente").value.trim() || !itemsValidos().length;
+      `<div class="fila final"><span>PRECIO TOTAL${c.aplicaIva ? " (con IVA)" : ""}:</span><span>${fmt(c.total)}</span></div>` +
+      (ars && !(c.tc > 0) ? `<div class="aviso" style="margin-top:.5rem; color:#b3261e;">Cargá un tipo de cambio mayor a 0.</div>` : "");
+    $("rpTablaItems").classList.toggle("ars", ars);
+    $("rpBtnPdf").disabled = !$("rpCliente").value.trim() || !itemsValidos().length || (ars && !(c.tc > 0));
   }
 
   // ---------------- Ítems ----------------
@@ -87,6 +107,7 @@ const ReigerRepuestos = (function () {
         <td><input type="text" value="${escapeAttr(it.descripcion)}" data-idx="${idx}" data-campo="descripcion"></td>
         <td class="col-cant"><input type="number" min="1" max="999" value="${it.cantidad}" data-idx="${idx}" data-campo="cantidad"></td>
         <td class="col-precio"><input type="number" min="0" step="0.01" value="${it.precio === "" ? "" : it.precio}" data-idx="${idx}" data-campo="precio"></td>
+        <td class="col-conv" id="rpConv${idx}">${fmt(num(it.precio))}</td>
         <td class="col-sub" id="rpSub${idx}">${fmt(num(it.cantidad) * num(it.precio))}</td>
         <td><button type="button" class="quitar" data-idx="${idx}" title="Quitar ítem">✕</button></td>
       `;
@@ -114,6 +135,8 @@ const ReigerRepuestos = (function () {
     items[idx][campo] = (campo === "cantidad" || campo === "precio") ? e.target.value : e.target.value;
     const sub = $("rpSub" + idx);
     if (sub) sub.textContent = fmt(num(items[idx].cantidad) * num(items[idx].precio));
+    const conv = $("rpConv" + idx);
+    if (conv) conv.textContent = fmt(num(items[idx].precio));
     renderTotales();
   }
 
@@ -143,6 +166,8 @@ const ReigerRepuestos = (function () {
       incoterm: $("rpIncoterm").value,
       items: itemsPdf,
       subtotal: c.subtotal, envio: c.envio, transf: c.transf, total: c.total,
+      moneda: c.moneda, tc: c.tc, factor: c.factor,
+      aplicaIva: c.aplicaIva, ivaPct: c.ivaPct, iva: c.iva,
       leyenda: cfgRep().leyendaDuty || "Duty a cargo del cliente.",
       contacto: CFG.contacto,
       notas: CFG.notas
@@ -158,9 +183,10 @@ const ReigerRepuestos = (function () {
       cliente,
       pais: datos.pais,
       cantItems: itemsPdf.length,
-      total: Number(c.total.toFixed(2)),
-      moneda: "USD",
+      total: Number((c.total * c.factor).toFixed(2)),   // en la moneda de salida
+      moneda: c.moneda,
       snapshot: {
+        moneda: c.moneda, tc: c.tc, aplicaIva: c.aplicaIva,   // los precios de los ítems siempre quedan en USD
         cliente, direccion: datos.direccion, ciudad: datos.ciudad, pais: datos.pais,
         condPago: datos.condPago, fecha: datos.fecha, validez: datos.validez,
         incoterm: datos.incoterm, envio: c.envio, transf: c.transf,
@@ -218,6 +244,11 @@ const ReigerRepuestos = (function () {
     $("rpIncoterm").value = s.incoterm || "EXW";
     $("rpEnvio").value = s.envio ?? 0;
     $("rpTransf").value = s.transf ?? 0;
+    // Presupuestos hechos antes de existir pesos/IVA no traen estos datos:
+    // se cargan en USD y sin IVA (como se emitieron) y se pueden cambiar.
+    $("rpMoneda").value = s.moneda || "USD";
+    if (s.tc) $("rpTC").value = s.tc;
+    $("rpIva").value = s.aplicaIva ? "si" : "no";
     items = (s.items || []).map(it => Object.assign({}, it));
     if (!items.length) items.push(itemVacio());
     renderItems();
@@ -233,6 +264,12 @@ const ReigerRepuestos = (function () {
     $("vistaRepuestos").classList.toggle("oculto", !esRep);
     $("tabSets").classList.toggle("activa", !esRep);
     $("tabRepuestos").classList.toggle("activa", esRep);
+    // El dólar oficial de la pestaña Sets llega con retraso (API): si todavía
+    // no hay T.C. cargado acá, se toma de ahí al entrar a Repuestos.
+    if (esRep && !num($("rpTC").value)) {
+      const tcSets = num($("fDolarVenta").value);
+      if (tcSets > 0) { $("rpTC").value = tcSets; renderItems(); renderTotales(); }
+    }
   }
 
   // ---------------- Init ----------------
@@ -264,7 +301,28 @@ const ReigerRepuestos = (function () {
     renderItems();
     renderTotales();
 
-    ["rpCliente", "rpEnvio", "rpTransf"].forEach(id => $(id).addEventListener("input", renderTotales));
+    ["rpCliente", "rpEnvio", "rpTransf", "rpIva"].forEach(id => $(id).addEventListener("input", renderTotales));
+    // Al cambiar moneda o T.C. se redibujan también los importes de cada ítem.
+    ["rpMoneda", "rpTC"].forEach(id => $(id).addEventListener("input", () => { renderItems(); renderTotales(); }));
+
+    // T.C. inicial: el que ya tenga la pestaña Sets (dólar oficial) y botón ⟳ propio.
+    const tcSets = Number(document.getElementById("fDolarVenta").value);
+    if (tcSets > 0) $("rpTC").value = tcSets;
+    $("rpBtnTC").addEventListener("click", async () => {
+      const estado = $("rpTCEstado");
+      estado.textContent = "Actualizando…";
+      try {
+        const resp = await fetch("https://dolarapi.com/v1/dolares/oficial");
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+        if (typeof data.venta !== "number") throw new Error("Respuesta inesperada");
+        $("rpTC").value = data.venta;
+        estado.textContent = "Dólar oficial (venta) de DolarAPI";
+        renderItems(); renderTotales();
+      } catch (e) {
+        estado.textContent = "No se pudo actualizar. Cargalo a mano.";
+      }
+    });
     $("rpBtnAgregar").addEventListener("click", () => {
       if (items.length >= maxItems()) return;
       items.push(itemVacio());

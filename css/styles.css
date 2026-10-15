@@ -183,6 +183,9 @@ table.items td.col-cant { width: 70px; }
 table.items td.col-precio { width: 110px; }
 table.items td.col-sub { width: 110px; text-align: right; white-space: nowrap; font-size: .85rem; }
 table.items th.col-precio, table.items th.col-sub { width: 110px; }
+/* Columna "P. unit. (ARS)" de Repuestos: solo visible cuando la moneda es ARS */
+table.items .col-conv { display: none; width: 120px; text-align: right; white-space: nowrap; font-size: .85rem; }
+table.items.ars .col-conv { display: table-cell; }
 
 /* Pestañas superiores (Sets / Repuestos) */
 .tabs-top {

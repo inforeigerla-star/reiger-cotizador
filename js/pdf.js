@@ -223,7 +223,8 @@ const ReigerPdf = (function () {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
     const anchoPag = 210, margen = 14;
-    const fmt = v => ReigerCalc.formatoMoneda(v, "USD");
+    const factor = datos.factor || 1, moneda = datos.moneda || "USD";
+    const fmt = v => ReigerCalc.formatoMoneda(v * factor, moneda);
     let y = 0;
 
     const logoAncho = 40, logoAlto = logoAncho * (507 / 630);
@@ -307,7 +308,8 @@ const ReigerPdf = (function () {
       doc.text(valor, xDer, y, { align: "right" });
       y += 6;
     }
-    linea("Subtotal repuestos:", fmt(datos.subtotal), false, 9.5);
+    linea(datos.aplicaIva ? "Subtotal repuestos (sin IVA):" : "Subtotal repuestos:", fmt(datos.subtotal), false, 9.5);
+    if (datos.aplicaIva) linea(`IVA (${Math.round(datos.ivaPct * 100)}%):`, fmt(datos.iva), false, 9.5);
     linea("Envío (estimado):", fmt(datos.envio), false, 9.5);
     linea("Costo por transferencia bancaria:", fmt(datos.transf), false, 9.5);
     y += 1;
@@ -316,8 +318,16 @@ const ReigerPdf = (function () {
     doc.line(margen, y, xDer, y);
     y += 5;
     doc.setTextColor(...VIOLETA_OSC);
-    linea("PRECIO TOTAL:", fmt(datos.total), true, 11.5);
+    linea(datos.aplicaIva ? "PRECIO TOTAL (con IVA):" : "PRECIO TOTAL:", fmt(datos.total), true, 11.5);
     doc.setTextColor(...GRIS_TEXTO);
+    if (moneda === "ARS") {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Valores en pesos al tipo de cambio de ARS ${datos.tc.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} por USD.`, margen, y);
+      doc.setTextColor(...GRIS_TEXTO);
+      y += 4;
+    }
     y += 2;
 
     doc.setFontSize(7.3);
