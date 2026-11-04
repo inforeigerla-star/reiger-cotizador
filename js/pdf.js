@@ -292,13 +292,7 @@ const ReigerPdf = (function () {
     });
     y = doc.lastAutoTable.finalY + 4;
 
-    // Leyenda bajo todos los ítems
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.setTextColor(...VIOLETA_OSC);
-    doc.text(datos.leyenda, margen, y);
-    doc.setTextColor(...GRIS_TEXTO);
-    y += 7;
+    y += 3;
 
     const xDer = anchoPag - margen;
     function linea(label, valor, negrita, tam) {

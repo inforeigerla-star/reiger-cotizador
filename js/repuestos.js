@@ -295,7 +295,6 @@ const ReigerRepuestos = (function () {
     $("rpEnvio").value = cfgRep().envioUSD ?? 0;
     $("rpTransf").value = cfgRep().transferenciaUSD ?? 0;
     $("rpNConsulta").value = siguienteNumero();
-    $("rpLeyenda").textContent = cfgRep().leyendaDuty || "Duty a cargo del cliente.";
 
     items = [itemVacio()];
     renderItems();
