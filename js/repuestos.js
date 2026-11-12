@@ -70,11 +70,17 @@ const ReigerRepuestos = (function () {
     // Recargo por gastos fijos: % sobre el subtotal de repuestos. Si hay IVA, se calcula sobre repuestos + recargo.
     const recargoPct = Math.max(0, num($("rpRecargo").value));
     const recargo = subtotal * recargoPct / 100;
-    const iva = aplicaIva ? (subtotal + recargo) * ivaPct : 0;
+    // Duty opcional (monto fijo en USD): solo suma si se tildó "Incluir Duty".
+    const incluyeDuty = $("rpDutyOn").value === "si";
+    const duty = incluyeDuty ? Math.max(0, num($("rpDuty").value)) : 0;
+    // "Envío e importación" = recargo gastos fijos + envío + transferencia + duty (un solo renglón para el cliente).
+    const cargos = recargo + envio + transf + duty;
+    // El IVA se calcula solo sobre el subtotal de repuestos (no sobre los cargos).
+    const iva = aplicaIva ? subtotal * ivaPct : 0;
     return {
-      subtotal, recargo, recargoPct, envio, transf, iva, aplicaIva, ivaPct,
+      subtotal, recargo, recargoPct, envio, transf, duty, incluyeDuty, cargos, iva, aplicaIva, ivaPct,
       moneda: m.moneda, tc: m.tc, factor: m.factor,
-      total: subtotal + recargo + iva + envio + transf
+      total: subtotal + iva + cargos
     };
   }
 
@@ -87,13 +93,12 @@ const ReigerRepuestos = (function () {
     const ars = c.moneda === "ARS";
     $("rpTotales").innerHTML =
       `<div class="fila"><span>Subtotal repuestos${c.aplicaIva ? " (sin IVA)" : ""}:</span><span>${fmt(c.subtotal)}</span></div>` +
-      (c.recargoPct > 0 ? `<div class="fila"><span>Recargo gastos fijos (${c.recargoPct}%):</span><span>${fmt(c.recargo)}</span></div>` : "") +
       (c.aplicaIva ? `<div class="fila"><span>IVA (${Math.round(c.ivaPct * 100)}%):</span><span>${fmt(c.iva)}</span></div>` : "") +
-      `<div class="fila"><span>Envío (estimado):</span><span>${fmt(c.envio)}</span></div>` +
-      `<div class="fila"><span>Costo por transferencia bancaria:</span><span>${fmt(c.transf)}</span></div>` +
+      `<div class="fila"><span>Envío e importación:</span><span>${fmt(c.cargos)}</span></div>` +
       `<div class="fila final"><span>PRECIO TOTAL${c.aplicaIva ? " (con IVA)" : ""}:</span><span>${fmt(c.total)}</span></div>` +
       (ars && !(c.tc > 0) ? `<div class="aviso" style="margin-top:.5rem; color:#b3261e;">Cargá un tipo de cambio mayor a 0.</div>` : "");
     $("rpTablaItems").classList.toggle("ars", ars);
+    $("campoDuty").classList.toggle("oculto", !c.incluyeDuty);
     $("rpBtnPdf").disabled = !$("rpCliente").value.trim() || !itemsValidos().length || (ars && !(c.tc > 0));
   }
 
@@ -169,7 +174,7 @@ const ReigerRepuestos = (function () {
       validez: $("rpValidez").value,
       incoterm: $("rpIncoterm").value,
       items: itemsPdf,
-      subtotal: c.subtotal, recargo: c.recargo, recargoPct: c.recargoPct, envio: c.envio, transf: c.transf, total: c.total,
+      subtotal: c.subtotal, cargos: c.cargos, total: c.total,
       moneda: c.moneda, tc: c.tc, factor: c.factor,
       aplicaIva: c.aplicaIva, ivaPct: c.ivaPct, iva: c.iva,
       leyenda: cfgRep().leyendaDuty || "Duty a cargo del cliente.",
@@ -190,7 +195,8 @@ const ReigerRepuestos = (function () {
       total: Number((c.total * c.factor).toFixed(2)),   // en la moneda de salida
       moneda: c.moneda,
       snapshot: {
-        moneda: c.moneda, tc: c.tc, aplicaIva: c.aplicaIva, recargoPct: c.recargoPct,   // los precios de los ítems siempre quedan en USD
+        moneda: c.moneda, tc: c.tc, aplicaIva: c.aplicaIva, recargoPct: c.recargoPct,
+        incluyeDuty: c.incluyeDuty, duty: num($("rpDuty").value),   // los precios de los ítems siempre quedan en USD
         cliente, direccion: datos.direccion, ciudad: datos.ciudad, pais: datos.pais,
         condPago: datos.condPago, fecha: datos.fecha, validez: datos.validez,
         incoterm: datos.incoterm, envio: c.envio, transf: c.transf,
@@ -254,6 +260,8 @@ const ReigerRepuestos = (function () {
     if (s.tc) $("rpTC").value = s.tc;
     $("rpIva").value = s.aplicaIva ? "si" : "no";
     $("rpRecargo").value = s.recargoPct || 0;   // presupuestos viejos: sin recargo
+    $("rpDutyOn").value = s.incluyeDuty ? "si" : "no";
+    $("rpDuty").value = s.duty || 0;
     items = (s.items || []).map(it => Object.assign({}, it));
     if (!items.length) items.push(itemVacio());
     renderItems();
@@ -306,7 +314,7 @@ const ReigerRepuestos = (function () {
     renderItems();
     renderTotales();
 
-    ["rpCliente", "rpEnvio", "rpTransf", "rpIva", "rpRecargo"].forEach(id => $(id).addEventListener("input", renderTotales));
+    ["rpCliente", "rpEnvio", "rpTransf", "rpIva", "rpRecargo", "rpDutyOn", "rpDuty"].forEach(id => $(id).addEventListener("input", renderTotales));
     // Al cambiar moneda o T.C. se redibujan también los importes de cada ítem.
     ["rpMoneda", "rpTC"].forEach(id => $(id).addEventListener("input", () => { renderItems(); renderTotales(); }));
 
