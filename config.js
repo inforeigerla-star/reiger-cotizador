@@ -34,6 +34,7 @@ window.REIGER_CONFIG = {
   // Pestaña "Repuestos (manual)": valores por defecto (todos editables en
   // pantalla al armar cada cotización).
   repuestos: {
+    recargoGastosFijosPct: 0,  // recargo por gastos fijos (% sobre subtotal de repuestos)
     envioUSD: 0,               // envío predeterminado (USD)
     transferenciaUSD: 0,       // costo por transferencia bancaria (USD)
     leyendaDuty: "Duty a cargo del cliente.",

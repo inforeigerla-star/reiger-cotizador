@@ -303,6 +303,7 @@ const ReigerPdf = (function () {
       y += 6;
     }
     linea(datos.aplicaIva ? "Subtotal repuestos (sin IVA):" : "Subtotal repuestos:", fmt(datos.subtotal), false, 9.5);
+    if (datos.recargoPct > 0) linea(`Recargo gastos fijos (${datos.recargoPct}%):`, fmt(datos.recargo), false, 9.5);
     if (datos.aplicaIva) linea(`IVA (${Math.round(datos.ivaPct * 100)}%):`, fmt(datos.iva), false, 9.5);
     linea("Envío (estimado):", fmt(datos.envio), false, 9.5);
     linea("Costo por transferencia bancaria:", fmt(datos.transf), false, 9.5);

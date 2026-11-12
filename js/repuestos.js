@@ -67,11 +67,14 @@ const ReigerRepuestos = (function () {
     const aplicaIva = $("rpIva").value === "si";
     const ivaPct = (window.REIGER_CONFIG.defaults.ivaPct) || 0.21;
     // El IVA se calcula solo sobre los repuestos (no sobre envío ni transferencia).
-    const iva = aplicaIva ? subtotal * ivaPct : 0;
+    // Recargo por gastos fijos: % sobre el subtotal de repuestos. Si hay IVA, se calcula sobre repuestos + recargo.
+    const recargoPct = Math.max(0, num($("rpRecargo").value));
+    const recargo = subtotal * recargoPct / 100;
+    const iva = aplicaIva ? (subtotal + recargo) * ivaPct : 0;
     return {
-      subtotal, envio, transf, iva, aplicaIva, ivaPct,
+      subtotal, recargo, recargoPct, envio, transf, iva, aplicaIva, ivaPct,
       moneda: m.moneda, tc: m.tc, factor: m.factor,
-      total: subtotal + iva + envio + transf
+      total: subtotal + recargo + iva + envio + transf
     };
   }
 
@@ -84,6 +87,7 @@ const ReigerRepuestos = (function () {
     const ars = c.moneda === "ARS";
     $("rpTotales").innerHTML =
       `<div class="fila"><span>Subtotal repuestos${c.aplicaIva ? " (sin IVA)" : ""}:</span><span>${fmt(c.subtotal)}</span></div>` +
+      (c.recargoPct > 0 ? `<div class="fila"><span>Recargo gastos fijos (${c.recargoPct}%):</span><span>${fmt(c.recargo)}</span></div>` : "") +
       (c.aplicaIva ? `<div class="fila"><span>IVA (${Math.round(c.ivaPct * 100)}%):</span><span>${fmt(c.iva)}</span></div>` : "") +
       `<div class="fila"><span>Envío (estimado):</span><span>${fmt(c.envio)}</span></div>` +
       `<div class="fila"><span>Costo por transferencia bancaria:</span><span>${fmt(c.transf)}</span></div>` +
@@ -165,7 +169,7 @@ const ReigerRepuestos = (function () {
       validez: $("rpValidez").value,
       incoterm: $("rpIncoterm").value,
       items: itemsPdf,
-      subtotal: c.subtotal, envio: c.envio, transf: c.transf, total: c.total,
+      subtotal: c.subtotal, recargo: c.recargo, recargoPct: c.recargoPct, envio: c.envio, transf: c.transf, total: c.total,
       moneda: c.moneda, tc: c.tc, factor: c.factor,
       aplicaIva: c.aplicaIva, ivaPct: c.ivaPct, iva: c.iva,
       leyenda: cfgRep().leyendaDuty || "Duty a cargo del cliente.",
@@ -186,7 +190,7 @@ const ReigerRepuestos = (function () {
       total: Number((c.total * c.factor).toFixed(2)),   // en la moneda de salida
       moneda: c.moneda,
       snapshot: {
-        moneda: c.moneda, tc: c.tc, aplicaIva: c.aplicaIva,   // los precios de los ítems siempre quedan en USD
+        moneda: c.moneda, tc: c.tc, aplicaIva: c.aplicaIva, recargoPct: c.recargoPct,   // los precios de los ítems siempre quedan en USD
         cliente, direccion: datos.direccion, ciudad: datos.ciudad, pais: datos.pais,
         condPago: datos.condPago, fecha: datos.fecha, validez: datos.validez,
         incoterm: datos.incoterm, envio: c.envio, transf: c.transf,
@@ -249,6 +253,7 @@ const ReigerRepuestos = (function () {
     $("rpMoneda").value = s.moneda || "USD";
     if (s.tc) $("rpTC").value = s.tc;
     $("rpIva").value = s.aplicaIva ? "si" : "no";
+    $("rpRecargo").value = s.recargoPct || 0;   // presupuestos viejos: sin recargo
     items = (s.items || []).map(it => Object.assign({}, it));
     if (!items.length) items.push(itemVacio());
     renderItems();
@@ -293,6 +298,7 @@ const ReigerRepuestos = (function () {
     $("rpIncoterm").value = CFG.defaults.incoterm;
     $("rpCondPago").value = CFG.defaults.condPago;
     $("rpEnvio").value = cfgRep().envioUSD ?? 0;
+    $("rpRecargo").value = cfgRep().recargoGastosFijosPct ?? 0;
     $("rpTransf").value = cfgRep().transferenciaUSD ?? 0;
     $("rpNConsulta").value = siguienteNumero();
 
@@ -300,7 +306,7 @@ const ReigerRepuestos = (function () {
     renderItems();
     renderTotales();
 
-    ["rpCliente", "rpEnvio", "rpTransf", "rpIva"].forEach(id => $(id).addEventListener("input", renderTotales));
+    ["rpCliente", "rpEnvio", "rpTransf", "rpIva", "rpRecargo"].forEach(id => $(id).addEventListener("input", renderTotales));
     // Al cambiar moneda o T.C. se redibujan también los importes de cada ítem.
     ["rpMoneda", "rpTC"].forEach(id => $(id).addEventListener("input", () => { renderItems(); renderTotales(); }));
 
